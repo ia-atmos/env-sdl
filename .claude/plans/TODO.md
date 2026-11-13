@@ -9,9 +9,15 @@ Asked one at a time, each with the recommended option.
 1. **One file at the root** (asked 2026-11-13): `sdl.atm`, functions in
    one table `sdl`, as `raylib.atm` and `pico.atm`; starts as
    `lib/sdl.atm` of the compiler. Recommended: yes.
-2. **Prefix of the event names** (not asked yet): keep `:sdl.` as
-   `lib/sdl.atm` and Pingus (`:sdl.key.dn`, `:sdl.mouse.dn`,
-   `:sdl.draw`), tags written in one place. Recommended: keep.
+2. **Names and fields of the events** (the author's, asked by the
+   compiler session as its item 46, not by this one): `:key.dn` with
+   `key=` or `name=`; `:mouse.mv`, `:mouse.motion`, or
+   `:mouse.button.dn`; a frame as the time and `:draw`, `:frame` and
+   `:draw`, or `:tick` and `:draw`. Recommended (by the compiler
+   session): the vocabulary of `pico.atm`: `:quit`; `:key.dn`,
+   `:key.up` with `key`; `:mouse.motion`, `:mouse.button.dn`,
+   `:mouse.button.up` with `x`, `y`, `button`; `:frame` then `:draw`.
+   Until answered: tags and fields in one place of the file.
 3. **One test mode for the three games** (not asked yet):
    `SDL_ATM_FRAMES`, `_KEYS`, `_SHOT`, plus the mouse of Pingus.
    Recommended: yes.
@@ -39,4 +45,10 @@ Asked one at a time, each with the recommended option.
 
 ## C. Reported or decided, not acknowledged
 
-- (nothing)
+- **Events have no prefix** (`:key.dn`, `:draw`, not `:sdl.key.dn`).
+  Relayed by the compiler session on 2026-11-13: the author decided
+  it for all environments in the session of pico ("Unprefixed is
+  ok"); plan updated there (`eefb2dc`). Not heard from the author in
+  this session, and not found in the part of the pico transcript
+  read from here (newest 100 events only). Adopted; told to the
+  author, who may object.
