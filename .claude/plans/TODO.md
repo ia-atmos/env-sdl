@@ -28,6 +28,14 @@ Asked one at a time, each with the recommended option.
   tests, Rocks running over it (waits for A1).
 - E1: `doc/inventory.md` for the three layers (does not wait).
 - E2..E7: see the plan.
+- **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
+  `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
+  `.claude/plans/261113-sdl-tux.md`), told by the compiler session on
+  2026-11-13. It has no layer of its own: it starts over this
+  environment from its third milestone on. Expected needs: tilemaps
+  drawn fast, sprites, fonts, sounds, a test mode with scripted input
+  by tick. Count it in `doc/inventory.md` (E1) as a future client and
+  in the design (E2).
 
 ## C. Reported or decided, not acknowledged
 
