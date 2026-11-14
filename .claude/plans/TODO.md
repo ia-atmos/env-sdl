@@ -55,6 +55,12 @@ Asked one at a time, each with the recommended option.
   `doc/requests/sdl-tux.md`; tell it when E0/E3 has what it can build
   on, and at which commit. Count it in `doc/inventory.md` (E1) as a future client and
   in the design (E2).
+- **Compiler changes to mind** (`ia-atmos/lang` `3cc4855`, told on
+  2026-11-14): `skip` is a statement and a reserved name; a `spawn`
+  that dies with its block is a compile error. The second fires in
+  the code of Pingus (one place) and SNKRX (three), not in their
+  layers: their sessions fix it, so the traces of those games change
+  before the move. Take the baseline of E4 and E5 after that.
 
 ## C. Reported or decided, not acknowledged
 
