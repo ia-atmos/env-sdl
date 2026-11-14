@@ -6,9 +6,6 @@ Everything that is pending in `env-sdl`. Plan: `261113-env-sdl.md`.
 
 Asked one at a time, each with the recommended option.
 
-1. **One file at the root** (asked 2026-11-13): `sdl.atm`, functions in
-   one table `sdl`, as `raylib.atm` and `pico.atm`; starts as
-   `lib/sdl.atm` of the compiler. Recommended: yes.
 2. **Names and fields of the events** (the author's, asked by the
    compiler session as its item 46, not by this one): `:key.dn` with
    `key=` or `name=`; `:mouse.mv`, `:mouse.motion`, or
@@ -32,7 +29,8 @@ Asked one at a time, each with the recommended option.
 ## B. Work known and not done
 
 - E0: readme, `sdl.atm` from the compiler, runner of tests, first
-  tests, Rocks running over it (waits for A1).
+  tests, Rocks running over it. One file `sdl.atm` at the root, functions
+  in the table `sdl`: confirmed by the author on 2026-11-14.
 - **A compiler of its own, `atmos-sdl`** (part of E0). Relayed by the
   compiler session on 2026-11-14 as a wish of the author for every
   environment, said in the session of pico; not heard from him here.
