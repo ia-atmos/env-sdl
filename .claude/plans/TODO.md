@@ -28,19 +28,6 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- E0: readme, `sdl.atm` from the compiler, runner of tests, first
-  tests, Rocks running over it. One file `sdl.atm` at the root, functions
-  in the table `sdl`: confirmed by the author on 2026-11-14.
-- **A compiler of its own, `atmos-sdl`** (part of E0). Relayed by the
-  compiler session on 2026-11-14 as a wish of the author for every
-  environment, said in the session of pico; not heard from him here.
-  The build makes it from the start:
-  `make -C <lang> env OUT=<dir>/atmos-sdl ENV=<dir>/sdl.atm
-  ENV_LDFLAGS="-lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer"`
-  (absolute paths, no quotes in the flags; checked in `ia-atmos/lang`
-  at `75c69a0`, manual "Environments"). The runner of the tests, the
-  examples, and `doc/api.md` use `atmos-sdl`; the `include` keeps
-  working and has a test of its own.
 - E1: `doc/inventory.md` for the three layers (does not wait).
 - E2..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
@@ -62,6 +49,19 @@ Asked one at a time, each with the recommended option.
 
 ## C. Reported or decided, not acknowledged
 
+- **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
+  builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
+  `ATMOS_ASAN=1`), readme.
+- **Rocks was copied here**, as `exs/rocks/`, to be the test of E0
+  (it takes a seed as its argument, to be deterministic). This goes
+  ahead of decision A4 only as a copy: `lib/sdl.atm` and `exs/rocks/`
+  of the compiler are untouched.
+- **`:draw` is only emitted when there is a window**, as in
+  `lib/sdl.atm`. Kept for now; to settle in E2.
+- **The screenshot of a text depends on the version of FreeType**
+  (`tst/text-2.png`, `tst/rocks-*.png`): the expected images are from
+  SDL2_ttf 2.22 of Ubuntu 24.04. To settle in E2 (a tolerance, or a
+  fixed setup).
 - **Events have no prefix** (`:key.dn`, `:draw`, not `:sdl.key.dn`).
   Relayed by the compiler session on 2026-11-13: the author decided
   it for all environments in the session of pico ("Unprefixed is

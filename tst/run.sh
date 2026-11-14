@@ -3,16 +3,20 @@
 #
 #   tst/run.sh [name ...]
 #
-# With no names, runs every tst/*.atm. Requires `../atmos-sdl` (see the
+# With no names, runs every tst/*.atm, and then every example
+# exs/*/main.atm, as the test with the name of its directory. Requires `../atmos-sdl` (see the
 # Makefile at the root). Set ATMOS_ASAN=1 to run under the address
 # sanitizer.
 #
 # A test is a program `tst/x.atm`. Its lines that start with `;; env:`
 # give the variables of the test mode:
 #
-#   ;; env: SDL_ATM_FRAMES=10:16 SDL_ATM_KEYS=2:dn:A
+#   ;; env: SDL_ATM_FRAMES=10:16 SDL_ATM_KEYS="2:dn:Left Shift"
 #
-# The program runs in `tst/`.
+# and a line that starts with `;; args:` gives the arguments of the
+# program. Both are read by the shell.
+#
+# The program runs in its own directory.
 # Its standard output is its trace: it must be equal to `tst/x.out`.
 # Each image `tst/x-*.png` must be equal, pixel by pixel, to the
 # `tst/out/x-*.png` that the program saves. A test must also exit with 0.
@@ -38,16 +42,30 @@ if [ -n "$ATMOS_ASAN" ] && [ -z "$LSAN_OPTIONS" ]; then
 fi
 
 if [ $# -eq 0 ]; then
-    set -- $(ls *.atm | sed 's/\.atm$//')
+    set -- $(ls *.atm | sed 's/\.atm$//') \
+           $(ls ../exs/*/main.atm | sed 's|^\.\./exs/||; s|/main\.atm$||')
 fi
+
+TST="$PWD"
 
 fail=0
 for t in "$@"; do
     t="${t%.atm}"
     rm -f "out/$t.out" "out/$t.err" "out/$t"-*.png
-    vars=$(sed -n 's/^;; env: *//p' "$t.atm" | tr '\n' ' ')
-    env SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy $vars \
-        ../atmos-sdl "$t.atm" > "out/$t.out" 2> "out/$t.err"
+    if [ -e "$t.atm" ]; then
+        dir=.
+        src="$t.atm"
+    else
+        dir="../exs/$t"
+        src=main.atm
+    fi
+    vars=$(sed -n 's/^;; env: *//p' "$dir/$src" | tr '\n' ' ')
+    args=$(sed -n 's/^;; args: *//p' "$dir/$src" | tr '\n' ' ')
+    (
+        cd "$dir" &&
+        eval "env SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy $vars \
+            \"\$TST/../atmos-sdl\" $src $args"
+    ) > "out/$t.out" 2> "out/$t.err"
     code=$?
     if [ -n "$SDL_ATM_ACCEPT" ] && [ $code -eq 0 ]; then
         cp "out/$t.out" "$t.out"
