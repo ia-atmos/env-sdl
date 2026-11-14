@@ -28,8 +28,9 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- E1: `doc/inventory.md` for the three layers (does not wait).
-- E2..E7: see the plan.
+- E2: `doc/design.md`, from section 11 of `doc/inventory.md`; shown
+  to the author before E3.
+- E3..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
   `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
   `.claude/plans/261113-sdl-tux.md`), told by the compiler session on
@@ -52,6 +53,12 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **E1 is done** (2026-11-14): `doc/inventory.md`, over
+  `doc/inventory/{pingus,snkrx,flare}.md`. The layers were read, not
+  run. Main findings: a small common part; a door in C is needed
+  (Pingus, Flare, Tux); SNKRX needs a different model of drawing; the
+  games use indices never freed, `sdl.atm` native values; the games
+  compare screenshots as files, byte for byte.
 - **Rocks was copied here**, as `exs/rocks/`, to be the test of E0
   (it takes a seed as its argument, to be deterministic). This goes
   ahead of decision A4 only as a copy: `lib/sdl.atm` and `exs/rocks/`
