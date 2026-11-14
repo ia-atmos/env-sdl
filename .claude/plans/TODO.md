@@ -22,7 +22,7 @@ Asked one at a time, each with the recommended option.
    `:key.up` with `key`; `:mouse.motion`, `:mouse.button.dn`,
    `:mouse.button.up` with `x`, `y`, `button`; `:frame` then `:draw`.
    Until answered: tags and fields in one place of the file.
-3. **One test mode for the three games** (not asked yet):
+3. **One test mode for the three games**:
    `SDL_ATM_FRAMES`, `_KEYS`, `_SHOT`, plus the mouse of Pingus.
    Recommended: yes, with `SDL_ATM_MOUSE`, `SDL_ATM_MUTE`, and `@file`
    for long scripts (`doc/design.md`, 9). Asked on 2026-11-14.
