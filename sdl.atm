@@ -1,14 +1,19 @@
 ;; A basic SDL environment.
 ;;
-;;      include "lib/sdl.atm"
+;;      atmos-sdl game.atm
+;;
+;; `atmos-sdl` is the compiler dedicated to this environment (`make`).
+;; With the plain compiler, the program starts with the `include`:
+;;
+;;      include "sdl.atm"
 ;;      ATMOS_LDFLAGS="-lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer" atmos game.atm
 ;;
 ;; The program runs inside the loop of SDL, which emits:
 ;;
-;;      :sdl.key.dn [name]      a key was pressed    (name: 'A', 'Return', ...)
-;;      :sdl.key.up [name]      a key was released
-;;      :sdl.quit               the window was closed (the program terminates)
-;;      :sdl.draw               once per frame, to redraw the screen
+;;      :key.dn [name]      a key was pressed    (name: 'A', 'Return', ...)
+;;      :key.up [name]      a key was released
+;;      :quit               the window was closed (the program terminates)
+;;      :draw               once per frame, to redraw the screen
 ;;
 ;; Time passes once per frame, so that `await 1s` and `loop us on :clock`
 ;; work as usual.
@@ -30,6 +35,12 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+
+// The tags of the events, all in this place.
+#define SDL_EVT_QUIT    "quit"
+#define SDL_EVT_KEY_DN  "key.dn"
+#define SDL_EVT_KEY_UP  "key.up"
+#define SDL_EVT_DRAW    "draw"
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
@@ -225,9 +236,9 @@ static AStatus sdl_script (const char* var, int frame) {
             IMG_SavePNG(sfc, arg);
             SDL_FreeSurface(sfc);
         } else if (!strncmp(arg, "dn:", 3)) {
-            st = sdl_emit("sdl.key.dn", arg+3);
+            st = sdl_emit(SDL_EVT_KEY_DN, arg+3);
         } else if (!strncmp(arg, "up:", 3)) {
-            st = sdl_emit("sdl.key.up", arg+3);
+            st = sdl_emit(SDL_EVT_KEY_UP, arg+3);
         }
     }
     return st;
@@ -256,12 +267,12 @@ int main (int argc, char** argv) {
         SDL_Event e;
         while (st==A_OK && SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                st = sdl_emit("sdl.quit", NULL);
+                st = sdl_emit(SDL_EVT_QUIT, NULL);
                 quit = 1;
             } else if (e.type==SDL_KEYDOWN && !e.key.repeat) {
-                st = sdl_emit("sdl.key.dn", SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit(SDL_EVT_KEY_DN, SDL_GetKeyName(e.key.keysym.sym));
             } else if (e.type == SDL_KEYUP) {
-                st = sdl_emit("sdl.key.up", SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit(SDL_EVT_KEY_UP, SDL_GetKeyName(e.key.keysym.sym));
             }
         }
         if (st == A_OK) {
@@ -280,7 +291,7 @@ int main (int argc, char** argv) {
         if (st==A_OK && SDL_REN!=NULL) {
             SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255);
             SDL_RenderClear(SDL_REN);
-            st = sdl_emit("sdl.draw", NULL);
+            st = sdl_emit(SDL_EVT_DRAW, NULL);
             sdl_script("SDL_ATM_SHOT", frame);
             SDL_RenderPresent(SDL_REN);
         }

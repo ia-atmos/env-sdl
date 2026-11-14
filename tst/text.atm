@@ -1,0 +1,13 @@
+;; A text, centered at a position, with the current color.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/text-2.png
+
+sdl.window [title="text", width=80, height=24]
+
+pin fnt = sdl.font("res/tiny.ttf", 10)
+print(type(fnt))
+print(sdl.font("res/none.ttf", 10))
+
+loop on :draw {
+    sdl.color(0xFFFF00)
+    sdl.write(fnt, "Atmos", sdl.pct_to_pos(50, 50))
+}

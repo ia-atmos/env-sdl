@@ -1,0 +1,24 @@
+;; Scripted keys, in the order of the frames.
+;; env: SDL_ATM_FRAMES=6:16 SDL_ATM_KEYS=2:dn:A,2:dn:Left,3:up:A,5:up:Left
+
+sdl.window [title="keys", width=20, height=20]
+
+var frame = 1
+spawn {
+    loop on :draw {
+        set frame = frame + 1
+    }
+}
+spawn {
+    loop e on :key.dn {
+        print(frame, :dn, e.name)
+    }
+}
+spawn {
+    loop e on :key.up {
+        print(frame, :up, e.name)
+    }
+}
+await :key.dn [name='Left']
+print(frame, :left)
+await false

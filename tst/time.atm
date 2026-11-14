@@ -1,0 +1,24 @@
+;; The time passes once per frame, with a fixed duration in the test
+;; mode: 10 frames of 100ms are 1s.
+;; env: SDL_ATM_FRAMES=12:100
+
+sdl.window [title="time", width=20, height=20]
+
+var frames = 0
+spawn {
+    loop on :draw {
+        set frames = frames + 1
+    }
+}
+spawn {
+    loop us on :clock {
+        print(:clock, us)
+        if frames >= 2 {
+            break
+        }
+    }
+}
+await 250ms
+print(:t250, frames)
+await 750ms
+print(:t1000, frames)

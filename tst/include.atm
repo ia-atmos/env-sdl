@@ -1,0 +1,9 @@
+;; A program that has the `include` still works with `atmos-sdl`.
+;; env: SDL_ATM_FRAMES=2:16
+
+include "../sdl.atm"
+
+sdl.window [title="include", width=20, height=20]
+print(type(sdl.window))
+await :draw
+print(:draw)

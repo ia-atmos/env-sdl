@@ -1,0 +1,14 @@
+;; The test mode stops the program after the last frame: the main chunk
+;; is aborted, and its `defer` executes.
+;; env: SDL_ATM_FRAMES=4:16
+
+sdl.window [title="frames", width=20, height=20]
+
+defer {
+    print(:end)
+}
+var n = 0
+loop on :draw {
+    set n = n + 1
+    print(:draw, n)
+}
