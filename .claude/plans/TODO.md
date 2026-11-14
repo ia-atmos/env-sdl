@@ -6,6 +6,13 @@ Everything that is pending in `env-sdl`. Plan: `261113-env-sdl.md`.
 
 Asked one at a time, each with the recommended option.
 
+0. **The design, `doc/design.md` (E2)**, shown on 2026-11-14. E3 does
+   not start before he sees it. Inside it, besides A2 and A3:
+   resources as native values and not indices (recommended: native
+   values; the three games change); SNKRX keeps its drawing in the
+   game, over a door in C (recommended: yes); the prefix `sdl_atm_`
+   for the names of the prelude (recommended: yes).
+
 2. **Names and fields of the events** (the author's, asked by the
    compiler session as its item 46, not by this one): `:key.dn` with
    `key=` or `name=`; `:mouse.mv`, `:mouse.motion`, or
@@ -17,7 +24,8 @@ Asked one at a time, each with the recommended option.
    Until answered: tags and fields in one place of the file.
 3. **One test mode for the three games** (not asked yet):
    `SDL_ATM_FRAMES`, `_KEYS`, `_SHOT`, plus the mouse of Pingus.
-   Recommended: yes.
+   Recommended: yes, with `SDL_ATM_MOUSE`, `SDL_ATM_MUTE`, and `@file`
+   for long scripts (`doc/design.md`, 9). Asked on 2026-11-14.
 4. **`lib/sdl.atm` leaves the compiler** (not asked yet), when this
    repository has it and its tests; `exs/rocks/` needs a home.
    Recommended: yes, Rocks as an example here.
@@ -28,8 +36,6 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- E2: `doc/design.md`, from section 11 of `doc/inventory.md`; shown
-  to the author before E3.
 - E3..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
   `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
