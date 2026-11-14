@@ -25,13 +25,24 @@ Asked one at a time, each with the recommended option.
    repository has it and its tests; `exs/rocks/` needs a home.
    Recommended: yes, Rocks as an example here.
 5. **How a game gets the environment** (not asked yet): a checkout at
-   a fixed commit, made by the setup script of the game.
+   a fixed commit, made by the setup script of the game, which
+   builds `atmos-sdl` from it; the game compiles with `atmos-sdl`.
    Recommended: yes.
 
 ## B. Work known and not done
 
 - E0: readme, `sdl.atm` from the compiler, runner of tests, first
   tests, Rocks running over it (waits for A1).
+- **A compiler of its own, `atmos-sdl`** (part of E0). Relayed by the
+  compiler session on 2026-11-14 as a wish of the author for every
+  environment, said in the session of pico; not heard from him here.
+  The build makes it from the start:
+  `make -C <lang> env OUT=<dir>/atmos-sdl ENV=<dir>/sdl.atm
+  ENV_LDFLAGS="-lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer"`
+  (absolute paths, no quotes in the flags; checked in `ia-atmos/lang`
+  at `75c69a0`, manual "Environments"). The runner of the tests, the
+  examples, and `doc/api.md` use `atmos-sdl`; the `include` keeps
+  working and has a test of its own.
 - E1: `doc/inventory.md` for the three layers (does not wait).
 - E2..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
