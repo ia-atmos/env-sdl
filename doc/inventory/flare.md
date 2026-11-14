@@ -136,7 +136,7 @@ Game side in C (class G), exposed through `fl`:
 | `fl.rotate` | `(dir, v) -> dir` | rotate a direction | none | 1 | 0 | `src/ai.atm:174` |
 | `fl.face_next` | `(dir, x,y, mx,my) -> dir` | turn towards a point | none | 2 | 0 | `src/ai.atm:236` |
 
-Total uses of `fl.<x>` in the game: 216 (by file: `combat` 55,
+Lines of the game with a `fl.<x>`: 216 (by file: `combat` 55,
 `play` 43, `ai` 41, `hero` 20, `event` 15, `enemy` 13, `map` 9,
 `font` 6, `anim` 5, `loot` 5, `effect` 3, `power` 1).
 
@@ -497,12 +497,15 @@ before draw and present after, no repeat on key down.
 11. **`:draw` after quit**: the last iteration still emits `:draw`
     and presents; `:quit` is not emitted when `FLARE_FRAMES` ends
     the run. Nothing awaits `:quit`.
-12. **Draw order relies on task order at `:draw`**: `MapRun` queues
-    enemies (`src/play.atm:246`) and `Play` queues the hero, renders
-    and clears (`src/play.atm:325-333`); `Play`'s loop is declared
-    last but the comment says the maps "add theirs before the next
-    draw", so what is drawn depends on the order in which the
-    awaiting tasks wake.
+12. **Draw order relies on task order at `:draw`**: two task bodies
+    await it. `MapRun` queues enemies and hazards
+    (`src/play.atm:246`, "drawn by Play, after the hero"); `Play`
+    queues the hero, calls `fl.map_render`, then `fl.ren_clear`
+    ("the maps add theirs before the next draw",
+    `src/play.atm:325-333`). What is on the screen in a frame
+    depends on the order in which the runtime wakes these tasks on
+    one `:draw` (manual: tasks awake in source/attachment order),
+    so `:draw` must stay one broadcast event per frame.
 13. **Indices instead of resources**: nothing is ever freed, the
     tables are fixed (4096 images, 64 fonts, 1024 sounds), failures
     are cached, `-1` is a valid argument everywhere (draws of an
@@ -525,8 +528,9 @@ before draw and present after, no repeat on key down.
 18. **Unused surface of the layer**: `fl.music`, `fl.music_stop`,
     `fl.pressing`, `fl.locked`, `fl.FPS` (nowhere); `fl.draw`,
     `fl.part`, `fl.fill`, `fl.size`, `fl.W/H`, `fl.frame`, `Frames`,
-    and all key/mouse events (tests only). 17 of the `Input`
-    actions in `Input` and all key bindings other than the
-    arrows/WASD and the mouse buttons are never read by the game.
+    and all key/mouse events (tests only). The game reads 10
+    actions (`UP`, `DOWN`, `LEFT`, `RIGHT`, `AIM_*`, `MAIN1`,
+    `MAIN2`); the other 19 of `Input`, and the bindings of
+    `FL_KEYS` to them, are never read.
 19. **The cap is 16 ms**, not 1000/60: about 62.5 frames per second
     when not in `FLARE_FAST`.
