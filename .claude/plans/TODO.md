@@ -51,7 +51,9 @@ Asked one at a time, each with the recommended option.
   2026-11-13. It has no layer of its own: it starts over this
   environment from its third milestone on. Expected needs: tilemaps
   drawn fast, sprites, fonts, sounds, a test mode with scripted input
-  by tick. Count it in `doc/inventory.md` (E1) as a future client and
+  by tick. Its requests, received on 2026-11-14, are in
+  `doc/requests/sdl-tux.md`; tell it when E0/E3 has what it can build
+  on, and at which commit. Count it in `doc/inventory.md` (E1) as a future client and
   in the design (E2).
 
 ## C. Reported or decided, not acknowledged
