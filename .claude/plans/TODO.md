@@ -53,12 +53,21 @@ Asked one at a time, each with the recommended option.
   the code of Pingus (one place) and SNKRX (three), not in their
   layers: their sessions fix it, so the traces of those games change
   before the move. Take the baseline of E4 and E5 after that.
+- A test of the pause of Rocks (the path is not covered; it changes
+  the expected images, so it needs a second run of the game).
 
 ## C. Reported or decided, not acknowledged
 
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **Migrated to the new rules of `pin`** (2026-11-15, `20f974f`,
+  `c18a419`; compiler at `09a7885`). Asked by the compiler session as
+  approved by the author; not heard from him here. 16 lines to `pin`,
+  4 rewrites in Rocks, the 8 tests identical. Reported to the
+  compiler session, with a defect of its own Rocks (the pause).
+  For the design: functions should return plain numbers, not small
+  tables, which a caller would have to `pin`.
 - **E1 is done** (2026-11-14): `doc/inventory.md`, over
   `doc/inventory/{pingus,snkrx,flare}.md`. The layers were read, not
   run. Main findings: a small common part; a door in C is needed
