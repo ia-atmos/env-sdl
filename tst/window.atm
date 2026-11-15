@@ -14,7 +14,7 @@ spawn {
     }
 }
 
-val p = sdl.pct_to_pos(50, 50)
+pin p = sdl.pct_to_pos(50, 50)
 print(p.x, p.y)
 print(sdl.rect_vs_rect([x=0,y=0,w=10,h=10], [x=9,y=9,w=5,h=5]))
 print(sdl.rect_vs_rect([x=0,y=0,w=10,h=10], [x=10,y=0,w=5,h=5]))
