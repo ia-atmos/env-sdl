@@ -1,0 +1,23 @@
+;; The factor of the clock: 1/7 as fast, then stopped, then as fast,
+;; with the remainder carried; `:frame` keeps the time of the frames.
+;; env: SDL_ATM_FRAMES=9:15
+
+sdl.window [title="clock", width=20, height=20]
+
+spawn {
+    loop us on :clock {
+        print(:clock, sdl.frame(), us)
+    }
+}
+spawn {
+    loop e on :frame {
+        print(:frame, e.n, e.us)
+        match e.n {
+            2 => sdl.clock(1/7)
+            5 => sdl.clock(0)
+            7 => sdl.clock()
+        }
+    }
+}
+print(:testing, sdl.testing())
+await false

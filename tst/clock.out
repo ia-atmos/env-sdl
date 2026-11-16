@@ -1,0 +1,17 @@
+testing	true
+clock	1	15000
+frame	1	15000
+clock	2	15000
+frame	2	15000
+clock	3	2142
+frame	3	15000
+clock	4	2143
+frame	4	15000
+clock	5	2143
+frame	5	15000
+frame	6	15000
+frame	7	15000
+clock	8	15000
+frame	8	15000
+clock	9	15000
+frame	9	15000

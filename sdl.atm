@@ -89,6 +89,10 @@ static Mix_Music*    SDL_MUS = NULL;    // the music, and its file
 static char*         SDL_MUS_PATH = NULL;
 static int           SDL_MX  = 0;       // the last position of the mouse
 static int           SDL_MY  = 0;
+static Uint8         SDL_KEYS[SDL_NUM_SCANCODES];  // pressed, by scancode
+static double        SDL_CLOCK = 1.0;   // the factor of the clock
+static int           SDL_FRAME = 0;     // the current frame, from 1
+static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES)
 
 static const char* SDL_KIND_IMG = "sdl.image";
 static const char* SDL_KIND_FNT = "sdl.font";
@@ -160,6 +164,36 @@ static const char* sdl_str (AVal t, const char* k, const char* def) {
     AVal v = a_tab_get(A_TAB_OF(t), key);
     a_dec(key);
     return (v.type == A_STR) ? A_STR_OF(v)->s : def;
+}
+
+// Whether the key of a name is pressed: the name of a key ('A',
+// 'Left Shift'), or else of a scancode.
+static int sdl_key (AVal name) {
+    if (name.type != A_STR) {
+        return 0;
+    }
+    SDL_Keycode key = SDL_GetKeyFromName(A_STR_OF(name)->s);
+    SDL_Scancode code = (key != SDLK_UNKNOWN) ? SDL_GetScancodeFromKey(key)
+        : SDL_GetScancodeFromName(A_STR_OF(name)->s);
+    return (code>SDL_SCANCODE_UNKNOWN && code<SDL_NUM_SCANCODES) ? SDL_KEYS[code] : 0;
+}
+
+// The window in fullscreen or not, its size (if not in fullscreen, and
+// greater than 0), the mouse grabbed in it, and the cursor shown. In
+// the test mode, the window keeps its size.
+static void sdl_display (int full, int w, int h, int grab, int cursor) {
+    if (SDL_WIN == NULL) {
+        return;
+    }
+    if (!SDL_TESTING) {
+        SDL_SetWindowFullscreen(SDL_WIN, full ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        if (!full && w>0 && h>0) {
+            SDL_SetWindowSize(SDL_WIN, w, h);
+            SDL_SetWindowPosition(SDL_WIN, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        }
+    }
+    SDL_SetWindowGrab(SDL_WIN, grab ? SDL_TRUE : SDL_FALSE);
+    SDL_ShowCursor(cursor ? SDL_ENABLE : SDL_DISABLE);
 }
 
 // Field `k` of a table, borrowed, or nil.
@@ -566,6 +600,9 @@ static AStatus sdl_emit (const char* tag) {
 
 // A key, by its keycode and its scancode.
 static AStatus sdl_emit_key (const char* tag, SDL_Keycode key, SDL_Scancode code) {
+    if (code>SDL_SCANCODE_UNKNOWN && code<SDL_NUM_SCANCODES) {
+        SDL_KEYS[code] = !strcmp(tag, SDL_EVT_KEY_DN);
+    }
     SDL_Fields f = {
         { SDL_FLD_KEY, SDL_FLD_CODE },
         { SDL_GetKeyName(key), SDL_GetScancodeName(code) },
@@ -669,6 +706,7 @@ int main (int argc, char** argv) {
 
     // test mode: a fixed number of frames with a fixed duration
     int frames = -1;
+    SDL_TESTING = (getenv("SDL_ATM_FRAMES") != NULL);
     int fixed  = 0;
     if (getenv("SDL_ATM_FRAMES") != NULL) {
         sscanf(getenv("SDL_ATM_FRAMES"), "%d:%d", &frames, &fixed);
@@ -681,6 +719,7 @@ int main (int argc, char** argv) {
     Uint64 prv  = SDL_GetPerformanceCounter();
     int quit = 0;
     for (int frame=1; st==A_OK && !quit && atm_alive(); frame++) {
+        SDL_FRAME = frame;
         SDL_Event e;
         while (st==A_OK && SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -720,7 +759,15 @@ int main (int argc, char** argv) {
         }
         prv = now;
         if (st==A_OK && us>0) {
-            st = atm_emit(a_int(us));
+            // the clock of Atmos goes `SDL_CLOCK` times as fast, and
+            // carries what is less than a microsecond to the next frame
+            static double acc = 0;
+            acc += us * SDL_CLOCK;
+            int64_t n = (int64_t)acc;
+            acc -= n;
+            if (n > 0) {
+                st = atm_emit(a_int(n));
+            }
         }
 
         // logic
@@ -897,6 +944,37 @@ pin sdl = [
     ;; sdl.volume(sounds, music): the volumes, from 0 to 1
     volume = func (snd, mus) {
         `sdl_volume(a_isnum($snd) ? a_dbl($snd) : 1.0, a_isnum($mus) ? a_dbl($mus) : 1.0);`
+    },
+
+    ;; sdl.display(fullscreen, w, h, grab, cursor): the window in
+    ;; fullscreen, or with the size w x h (if greater than 0), the mouse
+    ;; grabbed in it, and the cursor shown; the window keeps its size
+    ;; in the test mode
+    display = func (full, w, h, grab, cursor) {
+        `sdl_display(a_truthy($full), sdl_int($w,0), sdl_int($h,0), a_truthy($grab), a_truthy($cursor));`
+    },
+
+    ;; sdl.key(name): whether a key is pressed, by the name of the key
+    ;; ('A', 'Left Shift') or of its scancode
+    key = func (name) {
+        `:boolean sdl_key($name)`
+    },
+
+    ;; sdl.clock(f): the clock of Atmos goes `f` times as fast as the
+    ;; frames (1 by default; 0 stops it), carrying the remainder; the
+    ;; time of `:frame` is not affected
+    clock = func (f) {
+        `SDL_CLOCK = a_isnum($f) ? a_dbl($f) : 1.0;`
+    },
+
+    ;; sdl.frame(): the number of the current frame, from 1
+    frame = func () {
+        `:number SDL_FRAME`
+    },
+
+    ;; sdl.testing(): whether in the test mode (SDL_ATM_FRAMES)
+    testing = func () {
+        `:boolean SDL_TESTING`
     },
 
     ;; sdl.mouse(): the last position of the mouse

@@ -1,0 +1,8 @@
+;; The state of the keys, by the name of the key or of the scancode.
+;; env: SDL_ATM_FRAMES=5:16 SDL_ATM_KEYS="2:dn:A,2:dn:Left Shift,3:up:A,4:up:Left Shift"
+
+sdl.window [title="key", width=20, height=20]
+
+loop e on :frame {
+    print(e.n, sdl.key('A'), sdl.key('Left Shift'), sdl.key('LShift'), sdl.key('Nothing'), sdl.key(nil))
+}

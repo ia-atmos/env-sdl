@@ -1,0 +1,11 @@
+;; The display: in the test mode the window keeps its size, and the
+;; grab and the cursor change.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/display-2.png
+
+sdl.window [title="display", width=8, height=4]
+sdl.display(true, 100, 100, true, false)
+sdl.display(false, 100, 100, false, true)
+
+loop on :draw {
+    sdl.fill(0xFF0000FF, 0, 0, 8, 4)
+}

@@ -22,8 +22,9 @@ Asked one at a time, each with the recommended option.
   `sdl.play` with a volume, `sdl.music`, `sdl.music_stop`,
   `sdl.volume`; Rocks loads its sounds once. Also: `sdl.window` with
   `logical`, `fps`, `fixed`, `software` (a screen surface, blits,
-  `sdl.image(path, raw)`). To do, in this order: `sdl.display`;
-  `sdl.key(name)`, `sdl.clock(f)`; the door in C; `@file` in the test variables;
+  `sdl.image(path, raw)`). Also: `sdl.display`,
+  `sdl.key(name)`, `sdl.clock(f)` with the carry, `sdl.frame()`,
+  `sdl.testing()`. To do, in this order: the door in C; `@file` in the test variables;
   `doc/api.md`.
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
   `doc/requests/answers.md`, with what changes in the design
