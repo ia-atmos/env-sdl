@@ -35,7 +35,8 @@
 ;;
 ;; To test with no screen, set `SDL_VIDEODRIVER=dummy` and:
 ;;
-;;      SDL_ATM_FRAMES=n:ms     runs `n` frames of `ms` milliseconds, then quits
+;;      SDL_ATM_FRAMES=n[:ms]   runs `n` frames of `ms` milliseconds (or of
+;;                              1/fps s, see `sdl.window`), then quits
 ;;      SDL_ATM_KEYS=f:dn:A,... presses (`dn`) or releases (`up`) keys at frames
 ;;                              (by the name of the key)
 ;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
@@ -76,6 +77,10 @@
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
+static int           SDL_LW  = 0;       // the logical size, or 0
+static int           SDL_LH  = 0;
+static int           SDL_FPS = 60;      // the cap of frames per second
+static int           SDL_FIXED = 0;     // frames of exactly 1/SDL_FPS s
 static int           SDL_SND = 0;       // the audio device is open
 static double        SDL_SND_VOL = 1.0; // the volume of the sounds
 static Mix_Music*    SDL_MUS = NULL;    // the music, and its file
@@ -152,9 +157,24 @@ static const char* sdl_str (AVal t, const char* k, const char* def) {
     return (v.type == A_STR) ? A_STR_OF(v)->s : def;
 }
 
+// Field `k` of a table, borrowed, or nil.
+static AVal sdl_get (AVal t, AVal k) {
+    return (t.type == A_TAB) ? a_tab_get(A_TAB_OF(t), k) : a_nil();
+}
+
 static void sdl_window (AVal t) {
     int w = (int) sdl_fld(t, "width",  640);
     int h = (int) sdl_fld(t, "height", 480);
+    int fps = (int) sdl_fld(t, "fps", 60);
+    SDL_FPS = (fps > 0) ? fps : 60;
+    AVal k = a_strz("fixed");
+    SDL_FIXED = a_truthy(sdl_get(t, k));
+    a_dec(k);
+    k = a_strz("logical");
+    AVal lg = sdl_get(t, k);
+    a_dec(k);
+    SDL_LW = sdl_int(sdl_get(lg, a_int(0)), 0);
+    SDL_LH = sdl_int(sdl_get(lg, a_int(1)), 0);
     SDL_WIN = SDL_CreateWindow(sdl_str(t,"title","Atmos"),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, 0);
     if (SDL_WIN != NULL) {
@@ -163,6 +183,9 @@ static void sdl_window (AVal t) {
     if (SDL_REN == NULL) {
         fprintf(stderr, "sdl : %s\n", SDL_GetError());
         exit(1);
+    }
+    if (SDL_LW>0 && SDL_LH>0) {
+        SDL_RenderSetLogicalSize(SDL_REN, SDL_LW, SDL_LH);
     }
 }
 
@@ -571,8 +594,18 @@ int main (int argc, char** argv) {
         }
 
         // time
+        // The test mode, or a program with fixed frames, has frames of
+        // exactly 1/SDL_FPS s: the n-th frame ends at n*1000000/SDL_FPS
+        // us, so that SDL_FPS frames are exactly 1 s.
         Uint64 now = SDL_GetPerformanceCounter();
-        int64_t us = fixed ? (int64_t)fixed*1000 : (int64_t)((now-prv)*1000000/freq);
+        int64_t us;
+        if (fixed) {
+            us = (int64_t)fixed * 1000;
+        } else if (frames>0 || SDL_FIXED) {
+            us = ((int64_t)frame*1000000)/SDL_FPS - ((int64_t)(frame-1)*1000000)/SDL_FPS;
+        } else {
+            us = (int64_t)((now-prv)*1000000/freq);
+        }
         prv = now;
         if (st==A_OK && us>0) {
             st = atm_emit(a_int(us));
@@ -592,10 +625,15 @@ int main (int argc, char** argv) {
             SDL_RenderPresent(SDL_REN);
         }
 
+        // the cap: the rest of the frame, but not in the test mode
         if (frames>0 && frame>=frames) {
             quit = 1;
-        } else if (!fixed) {
-            SDL_Delay(16);
+        } else if (frames <= 0) {
+            Uint64 per   = freq / SDL_FPS;
+            Uint64 spent = SDL_GetPerformanceCounter() - now;
+            if (spent < per) {
+                SDL_Delay((Uint32)((per-spent)*1000/freq));
+            }
         }
     }
 
@@ -625,7 +663,13 @@ int main (int argc, char** argv) {
 ```
 
 pin sdl = [
-    ;; sdl.window [title=, width=, height=]
+    ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=]
+    ;;  - logical: the size that the program draws in, scaled to the
+    ;;    window (default: the size of the window)
+    ;;  - fps: the cap of frames per second (default 60)
+    ;;  - fixed: if true, the time of a frame is exactly 1/fps s, and
+    ;;    not the time measured (fps frames are exactly 1 s); the test
+    ;;    mode is always so
     window = func (t) {
         `sdl_window($t);`
     },

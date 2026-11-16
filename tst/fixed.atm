@@ -1,0 +1,24 @@
+;; With no milliseconds in SDL_ATM_FRAMES, a frame is exactly 1/fps s:
+;; 30 frames are 1 s, in frames of 33333 and 33334 us. The time passes
+;; before `:frame`, so `await 1s` awakes in the 30th frame, before it.
+;; env: SDL_ATM_FRAMES=62
+
+sdl.window [title="fixed", width=20, height=20, fps=30]
+
+spawn {
+    loop e on :frame {
+        if e.n <= 4 {
+            print(:frame, e.n, e.us)
+        }
+    }
+}
+var n = 0
+spawn {
+    loop on :frame {
+        set n = n + 1
+    }
+}
+await 1s
+print(:t1, n)
+await 1s
+print(:t2, n)

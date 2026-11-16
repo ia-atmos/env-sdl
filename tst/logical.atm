@@ -1,0 +1,10 @@
+;; A logical size, scaled to the window: a fill of 1x1 logical pixel
+;; is 4x4 pixels of the window.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/logical-2.png
+
+sdl.window [title="logical", width=16, height=8, logical=[4,2]]
+
+loop on :draw {
+    sdl.fill(0xFF0000FF, 0, 0, 1, 1)
+    sdl.fill(0x00FF00FF, 3, 1, 1, 1)
+}
