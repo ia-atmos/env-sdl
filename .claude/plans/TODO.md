@@ -29,15 +29,16 @@ Asked one at a time, each with the recommended option.
   `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
   `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
   `sdl.key(name)`, `sdl.clock(f)`; the door in C (waits for the
-  prefix, A0); `@file` in the test variables; screenshots as `.bmp`;
+  prefix, A0); `@file` in the test variables;
   `doc/api.md`.
-- **Pingus and SNKRX answered** (2026-11-16):
+- **Pingus, SNKRX, and Flare answered** (2026-11-16):
   `doc/requests/answers.md`, with what changes in the design
-  (`:frame` in microseconds, a fixed rate from the program, the carry
+  (`:frame` in microseconds, the scancode in the key events, a raw
+  image format for the software path, no `.bmp`, a fixed rate from the program, the carry
   of `sdl.clock`, a callback of flush in C, the second pass of
   drawing of SNKRX, still open). Baselines: Pingus `cc5fe72`, SNKRX
   `2bddee7` or later. `inventory/pingus.md` is out of date in three
-  spots of `engine.atm`. **Flare has not answered.**
+  spots of `engine.atm`.
 - E4..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
   `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
