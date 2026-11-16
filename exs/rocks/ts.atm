@@ -2,7 +2,7 @@ val SHIP_FRAMES     = 4
 val SHIP_ACC_DIV    = 10
 pin SHIP_VEL_MAX    = [ x=W/2.5, y=H/2.5 ]
 pin SHOT_DIM        = [ w=W/50, h=H/100 ]
-val SHOT_COLOR      = 0xFFFF88
+val SHOT_COLOR      = 0xFFFF88FF
 val METEOR_FRAMES   = 6
 val METEOR_AWAIT    = 5000
 
@@ -74,8 +74,7 @@ task Meteor () {
         }
     } with {
         loop on :draw {
-            pin crop = [ x=dx, y=0, w=w, h=h ]
-            sdl.copy(tex, crop, rect)
+            sdl.part(tex, dx,0,w,h, rect.x,rect.y)
         }
     } with {
         val v = ((vx->math.pow(2)) + (vy->math.pow(2))) --> math.pow(1/2)
@@ -100,8 +99,7 @@ task Shot (V, pos, vy) {
         await Move_T(rect, [x=(W/3)*V.x, y=vy])
     } with {
         loop on :draw {
-            sdl.color(SHOT_COLOR)
-            sdl.fill(rect)
+            sdl.fill(SHOT_COLOR, rect.x,rect.y,rect.w,rect.h)
         }
     }
 }
@@ -152,8 +150,7 @@ task Ship (V, shots) {
                     V.ctl.move.d => V.ctl.frame.d
                     else => 0
                 }
-                pin crop = [ x=0, y=frame*dy, w=rect.w, h=dy ]
-                sdl.copy(tex, crop, rect)
+                sdl.part(tex, 0,frame*dy,rect.w,dy, rect.x,rect.y)
             }
         } with {
             loop us on :clock {
@@ -177,8 +174,7 @@ task Ship (V, shots) {
             }
         } with {
             loop on :draw {
-                sdl.color(0xFF0000)
-                sdl.fill [ x=rect.x, y=rect.y, w=d, h=d ]
+                sdl.fill(0xFF0000FF, rect.x,rect.y,d,d)
             }
         }
     }

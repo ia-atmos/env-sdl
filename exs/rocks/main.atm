@@ -20,9 +20,24 @@ sdl.window [
     height = H,
 ]
 
-val PP = sdl.pct_to_pos
-val rect_vs_rect = sdl.rect_vs_rect
+;; percentages of the window as a position
+func PP (x, y) {
+    [ x = (W*x)//100, y = (H*y)//100 ]
+}
+
+;; the rectangles overlap
+func rect_vs_rect (r1, r2) {
+    (r1.x < r2.x+r2.w) && (r2.x < r1.x+r1.w) &&
+    (r1.y < r2.y+r2.h) && (r2.y < r1.y+r1.h)
+}
+
 pin FNT = sdl.font("tiny.ttf", H//15) --> assert
+
+;; a white text centered at a position
+func write (s, pt) {
+    val _, h = sdl.text_size(FNT, s)
+    sdl.text(FNT, s, pt.x, pt.y - (h//2), 0xFFFFFFFF, :center)
+}
 
 val SEED = ...
 math.randomseed(tonumber(SEED) || os.time())
@@ -38,8 +53,9 @@ spawn {    ;; BACKGROUND
     ;; always be rendered first.
     ;;;
     pin tex = sdl.image("imgs/bg.png") --> assert
+    val w, h = sdl.size(tex)
     loop on :draw {
-        sdl.copy(tex)
+        sdl.scale(tex, 0,0,w,h, 0,0,W,H)
     }
 }
 
@@ -56,9 +72,8 @@ spawn {    ;; POINTS
     pin l = PP(10, 90)
     pin r = PP(90, 90)
     loop on :draw {
-        sdl.color(0xFFFFFF)
-        sdl.write(FNT, tostring(points.L), l)
-        sdl.write(FNT, tostring(points.R), r)
+        write(tostring(points.L), l)
+        write(tostring(points.R), r)
     }
 }
 
@@ -80,8 +95,7 @@ loop {
             watching 500ms {
                 pin pt = PP(50, 50)
                 loop on :draw {
-                    sdl.color(0xFFFFFF)
-                    sdl.write(FNT, "= PRESS ENTER TO START =", pt)
+                    write("= PRESS ENTER TO START =", pt)
                 }
             }
             ;; 500ms off
@@ -107,14 +121,8 @@ loop {
                 pin tex = sdl.image("imgs/pause.png") --> assert
                 val w, h = sdl.size(tex)
                 pin pt = PP(50, 50)
-                pin r = [
-                    x = pt.x - (w/2),
-                    y = pt.y - (h/2),
-                    w = w,
-                    h = h,
-                ]
                 loop on :draw {
-                    sdl.copy(tex, nil, r)
+                    sdl.draw(tex, pt.x - (w/2), pt.y - (h/2))
                 }
             }
             await :key.dn [key='P']

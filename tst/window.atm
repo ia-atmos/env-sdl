@@ -1,21 +1,10 @@
-;; A window, the color, and filled rectangles.
+;; A window, and filled rectangles with a color each.
 ;; env: SDL_ATM_FRAMES=3:16 SDL_ATM_SHOT=2:out/window-2.png
 
 sdl.window [title="window", width=40, height=30]
 
-spawn {
-    loop on :draw {
-        sdl.color(0xFF0000)
-        sdl.fill [x=0, y=0, w=10, h=10]
-        sdl.color(0x00FF00)
-        sdl.fill [x=30, y=20, w=10, h=10]
-        sdl.color(0x0000FF)
-        sdl.fill [x=15, y=10, w=10, h=10]
-    }
+loop on :draw {
+    sdl.fill(0xFF0000FF, 0, 0, 10, 10)
+    sdl.fill(0x00FF00FF, 30, 20, 10, 10)
+    sdl.fill(0x0000FFFF, 15, 10, 10, 10)
 }
-
-pin p = sdl.pct_to_pos(50, 50)
-print(p.x, p.y)
-print(sdl.rect_vs_rect([x=0,y=0,w=10,h=10], [x=9,y=9,w=5,h=5]))
-print(sdl.rect_vs_rect([x=0,y=0,w=10,h=10], [x=10,y=0,w=5,h=5]))
-await false

@@ -33,8 +33,7 @@ the SDL2 packages above.
 sdl.window [title="Hello", width=320, height=240]
 spawn {
     loop on :draw {
-        sdl.color(0xFF0000)
-        sdl.fill [x=110, y=70, w=100, h=100]
+        sdl.fill(0xFF0000FF, 110, 70, 100, 100)
     }
 }
 await :key.dn

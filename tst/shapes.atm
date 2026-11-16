@@ -1,0 +1,12 @@
+;; Outlines, lines, and a fill with alpha over another.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/shapes-2.png
+
+sdl.window [title="shapes", width=16, height=8]
+
+loop on :draw {
+    sdl.rect(0xFF0000FF, 0, 0, 8, 8)
+    sdl.line(0x00FF00FF, 9, 0, 15, 6)
+    sdl.line(0xFFFFFFFF, 9, 7, 15, 7)
+    sdl.fill(0x0000FFFF, 2, 2, 4, 4)
+    sdl.fill(0xFFFFFF80, 4, 4, 4, 4)
+}

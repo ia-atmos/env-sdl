@@ -1,4 +1,4 @@
-;; An image, its size, whole and cropped, and scaled into a rectangle.
+;; An image, its size, whole, a part, a part scaled, a part with alpha.
 ;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/image-2.png
 
 sdl.window [title="image", width=32, height=16]
@@ -6,11 +6,12 @@ sdl.window [title="image", width=32, height=16]
 pin img = sdl.image("res/quad.png")
 print(type(img), sdl.size(img))
 print(sdl.image("res/none.png"))
+print(sdl.size(nil))
 
 loop on :draw {
-    sdl.color(0x404040)
-    sdl.fill [x=0, y=0, w=32, h=16]
-    sdl.copy(img, nil, [x=0, y=0, w=8, h=4])
-    sdl.copy(img, [x=4, y=0, w=4, h=2], [x=16, y=0, w=4, h=2])
-    sdl.copy(img, [x=0, y=2, w=8, h=2], [x=0, y=8, w=32, h=8])
+    sdl.fill(0x404040FF, 0, 0, 32, 16)
+    sdl.draw(img, 0, 0)
+    sdl.part(img, 4,0,4,2, 16,0)
+    sdl.scale(img, 0,2,8,2, 0,8,32,8)
+    sdl.part(img, 0,0,4,2, 24,0, 128)
 }

@@ -12,11 +12,13 @@ Asked one at a time, each with the recommended option.
 
 - **E3, in course.** Done: the events of the design (`key`, the
   mouse, `:frame [n,us]`, the scancode as `code`), `sdl.mouse()`, `SDL_ATM_MOUSE`,
-  `SDL_ATM_MUTE` (12 tests). To do, in this order: plain numbers as
-  arguments and the color in each call (`sdl.draw`, `sdl.part`,
-  `sdl.scale`, `sdl.fill`, `sdl.rect`, `sdl.line`; Rocks changes);
-  `sdl.text` with a color and an alignment, `sdl.text_size`;
-  `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
+  `SDL_ATM_MUTE` (12 tests). Also: images as a surface
+  with a texture made at the first draw; `sdl.draw`, `sdl.part`,
+  `sdl.scale`, `sdl.fill`, `sdl.rect`, `sdl.line` with plain numbers
+  and a color `0xRRGGBBAA` in each call; `sdl.text` with a color and
+  an alignment, `sdl.text_size`; `sdl.copy`, `sdl.color`,
+  `sdl.write`, `sdl.pct_to_pos`, `sdl.rect_vs_rect` removed (the last
+  two are of Rocks now). To do, in this order: `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
   `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
   `sdl.key(name)`, `sdl.clock(f)`; the door in C; `@file` in the test variables;
   `doc/api.md`.

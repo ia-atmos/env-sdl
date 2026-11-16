@@ -76,16 +76,42 @@
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
-static SDL_Color     SDL_CLR = { 255, 255, 255, 255 };
 static int           SDL_SND = 0;
 static int           SDL_MX  = 0;       // the last position of the mouse
 static int           SDL_MY  = 0;
 
-static const char* SDL_KIND_TEX = "sdl.texture";
+static const char* SDL_KIND_IMG = "sdl.image";
 static const char* SDL_KIND_FNT = "sdl.font";
 
-static void sdl_tex_fin (void* p) { SDL_DestroyTexture(p); }
+// An image: its pixels in a surface, and a texture made from it at its
+// first draw.
+typedef struct {
+    SDL_Surface* sfc;
+    SDL_Texture* tex;
+} SDL_Image;
+
+static void sdl_img_fin (void* p) {
+    SDL_Image* img = p;
+    if (img->tex != NULL) {
+        SDL_DestroyTexture(img->tex);
+    }
+    SDL_FreeSurface(img->sfc);
+    free(img);
+}
+
 static void sdl_fnt_fin (void* p) { TTF_CloseFont(p); }
+
+// A number as an int (truncated), or `def`.
+static int sdl_int (AVal v, int def) {
+    return a_isnum(v) ? (int)a_dbl(v) : def;
+}
+
+// 0xRRGGBBAA as a color, or `def`.
+static SDL_Color sdl_rgba (AVal v, uint32_t def) {
+    uint32_t c = a_isnum(v) ? (uint32_t)(int64_t)a_dbl(v) : def;
+    SDL_Color clr = { (c>>24)&0xFF, (c>>16)&0xFF, (c>>8)&0xFF, c&0xFF };
+    return clr;
+}
 
 // Field of a table as a number, or `def`.
 static double sdl_fld (AVal t, const char* k, double def) {
@@ -109,18 +135,6 @@ static const char* sdl_str (AVal t, const char* k, const char* def) {
     return (v.type == A_STR) ? A_STR_OF(v)->s : def;
 }
 
-// [x,y,w,h] as a rectangle. Returns NULL if `t` is not a table.
-static SDL_Rect* sdl_rect (AVal t, SDL_Rect* r) {
-    if (t.type != A_TAB) {
-        return NULL;
-    }
-    r->x = (int) sdl_fld(t, "x", 0);
-    r->y = (int) sdl_fld(t, "y", 0);
-    r->w = (int) sdl_fld(t, "w", 0);
-    r->h = (int) sdl_fld(t, "h", 0);
-    return r;
-}
-
 static void sdl_window (AVal t) {
     int w = (int) sdl_fld(t, "width",  640);
     int h = (int) sdl_fld(t, "height", 480);
@@ -136,9 +150,30 @@ static void sdl_window (AVal t) {
 }
 
 static AVal sdl_image (AVal path) {
-    SDL_Texture* tex = (path.type == A_STR && SDL_REN != NULL)
-        ? IMG_LoadTexture(SDL_REN, A_STR_OF(path)->s) : NULL;
-    return (tex == NULL) ? a_nil() : a_nat(tex, sdl_tex_fin, SDL_KIND_TEX);
+    SDL_Surface* sfc = (path.type == A_STR) ? IMG_Load(A_STR_OF(path)->s) : NULL;
+    if (sfc == NULL) {
+        return a_nil();
+    }
+    SDL_Image* img = malloc(sizeof(SDL_Image));
+    img->sfc = sfc;
+    img->tex = NULL;
+    return a_nat(img, sdl_img_fin, SDL_KIND_IMG);
+}
+
+// The image of a value, or NULL.
+static SDL_Image* sdl_img (AVal v) {
+    return (a_nat_is(v,SDL_KIND_IMG)) ? a_nat_ptr(v) : NULL;
+}
+
+// The texture of an image, made at its first use, or NULL.
+static SDL_Texture* sdl_img_tex (SDL_Image* img) {
+    if (img==NULL || SDL_REN==NULL) {
+        return NULL;
+    }
+    if (img->tex == NULL) {
+        img->tex = SDL_CreateTextureFromSurface(SDL_REN, img->sfc);
+    }
+    return img->tex;
 }
 
 static AVal sdl_font (AVal path, AVal size) {
@@ -147,49 +182,95 @@ static AVal sdl_font (AVal path, AVal size) {
     return (fnt == NULL) ? a_nil() : a_nat(fnt, sdl_fnt_fin, SDL_KIND_FNT);
 }
 
-static int sdl_dim (AVal tex, int width) {
+static int sdl_dim (AVal v, int width) {
+    SDL_Image* img = sdl_img(v);
+    if (img == NULL) {
+        return 0;
+    }
+    return width ? img->sfc->w : img->sfc->h;
+}
+
+// Draws the part `src` of an image into `dst`, with an alpha.
+static void sdl_blit (AVal v, SDL_Rect* src, SDL_Rect* dst, int alpha) {
+    SDL_Texture* tex = sdl_img_tex(sdl_img(v));
+    if (tex == NULL) {
+        return;
+    }
+    if (alpha != 255) {
+        SDL_SetTextureAlphaMod(tex, alpha);
+    }
+    SDL_RenderCopy(SDL_REN, tex, src, dst);
+    if (alpha != 255) {
+        SDL_SetTextureAlphaMod(tex, 255);
+    }
+}
+
+// Draws a whole image at a position.
+static void sdl_draw (AVal v, int x, int y) {
+    SDL_Image* img = sdl_img(v);
+    if (img != NULL) {
+        SDL_Rect d = { x, y, img->sfc->w, img->sfc->h };
+        sdl_blit(v, NULL, &d, 255);
+    }
+}
+
+// Draws the part `s` of an image into `d`, with an alpha.
+static void sdl_part (AVal v, int sx, int sy, int sw, int sh,
+    int x, int y, int w, int h, int alpha)
+{
+    SDL_Rect s = { sx, sy, sw, sh };
+    SDL_Rect d = { x, y, w, h };
+    sdl_blit(v, &s, &d, alpha);
+}
+
+// Fills (`fill`) or outlines a rectangle, with a color.
+static void sdl_rect (AVal rgba, int x, int y, int w, int h, int fill) {
+    if (SDL_REN == NULL) {
+        return;
+    }
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    SDL_Rect r = { x, y, w, h };
+    SDL_SetRenderDrawBlendMode(SDL_REN, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(SDL_REN, c.r, c.g, c.b, c.a);
+    if (fill) {
+        SDL_RenderFillRect(SDL_REN, &r);
+    } else {
+        SDL_RenderDrawRect(SDL_REN, &r);
+    }
+}
+
+static void sdl_line (AVal rgba, int x1, int y1, int x2, int y2) {
+    if (SDL_REN == NULL) {
+        return;
+    }
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    SDL_SetRenderDrawBlendMode(SDL_REN, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(SDL_REN, c.r, c.g, c.b, c.a);
+    SDL_RenderDrawLine(SDL_REN, x1, y1, x2, y2);
+}
+
+// The size of a text in a font, or 0, 0.
+static int sdl_text_dim (AVal fnt, AVal txt, int width) {
     int w=0, h=0;
-    if (a_nat_is(tex,SDL_KIND_TEX) && a_nat_ptr(tex)!=NULL) {
-        SDL_QueryTexture(a_nat_ptr(tex), NULL, NULL, &w, &h);
+    if (a_nat_is(fnt,SDL_KIND_FNT) && txt.type==A_STR) {
+        TTF_SizeUTF8(a_nat_ptr(fnt), A_STR_OF(txt)->s, &w, &h);
     }
     return width ? w : h;
 }
 
-static void sdl_copy (AVal tex, AVal crop, AVal dst) {
-    if (!a_nat_is(tex,SDL_KIND_TEX) || a_nat_ptr(tex)==NULL) {
+// Writes a text with a color, at `x` (aligned: 0 left, 1 center, 2
+// right) and `y` (its top).
+static void sdl_text (AVal fnt, AVal txt, int x, int y, AVal rgba, int align) {
+    if (!a_nat_is(fnt,SDL_KIND_FNT) || txt.type!=A_STR || SDL_REN==NULL) {
         return;
     }
-    SDL_Rect r1, r2;
-    SDL_RenderCopy(SDL_REN, a_nat_ptr(tex), sdl_rect(crop,&r1), sdl_rect(dst,&r2));
-}
-
-static void sdl_color (AVal rgb) {
-    int64_t c = a_isnum(rgb) ? (int64_t)a_dbl(rgb) : 0xFFFFFF;
-    SDL_CLR.r = (c >> 16) & 0xFF;
-    SDL_CLR.g = (c >>  8) & 0xFF;
-    SDL_CLR.b = (c >>  0) & 0xFF;
-    SDL_SetRenderDrawColor(SDL_REN, SDL_CLR.r, SDL_CLR.g, SDL_CLR.b, 255);
-}
-
-static void sdl_fill (AVal rect) {
-    SDL_Rect r;
-    SDL_RenderFillRect(SDL_REN, sdl_rect(rect,&r));
-}
-
-// Writes a text centered at a position, with the current color.
-static void sdl_write (AVal fnt, AVal txt, AVal pos) {
-    if (!a_nat_is(fnt,SDL_KIND_FNT) || a_nat_ptr(fnt)==NULL || txt.type!=A_STR) {
-        return;
-    }
-    SDL_Surface* sfc = TTF_RenderUTF8_Blended(a_nat_ptr(fnt), A_STR_OF(txt)->s, SDL_CLR);
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    SDL_Surface* sfc = TTF_RenderUTF8_Blended(a_nat_ptr(fnt), A_STR_OF(txt)->s, c);
     if (sfc == NULL) {
         return;
     }
     SDL_Texture* tex = SDL_CreateTextureFromSurface(SDL_REN, sfc);
-    SDL_Rect r = {
-        (int)sdl_fld(pos,"x",0) - sfc->w/2, (int)sdl_fld(pos,"y",0) - sfc->h/2,
-        sfc->w, sfc->h
-    };
+    SDL_Rect r = { x - (align*sfc->w)/2, y, sfc->w, sfc->h };
     SDL_RenderCopy(SDL_REN, tex, NULL, &r);
     SDL_DestroyTexture(tex);
     SDL_FreeSurface(sfc);
@@ -457,14 +538,47 @@ pin sdl = [
         `sdl_window($t);`
     },
 
-    ;; sdl.image(path): a texture, or nil
+    ;; sdl.image(path): an image, or nil
     image = func (path) {
         `:value sdl_image($path)`
     },
 
-    ;; sdl.size(tex): width and height of a texture
-    size = func (tex) {
-        return `:number sdl_dim($tex, 1)`, `:number sdl_dim($tex, 0)`
+    ;; sdl.size(img): the width and the height of an image
+    size = func (img) {
+        return `:number sdl_dim($img, 1)`, `:number sdl_dim($img, 0)`
+    },
+
+    ;; sdl.draw(img, x, y): the whole image at a position
+    draw = func (img, x, y) {
+        `sdl_draw($img, sdl_int($x,0), sdl_int($y,0));`
+    },
+
+    ;; sdl.part(img, sx,sy,sw,sh, x,y [,alpha]): a part of an image at a
+    ;; position, with an alpha (0 to 255)
+    part = func (img, sx,sy,sw,sh, x,y, alpha) {
+        `sdl_part($img, sdl_int($sx,0), sdl_int($sy,0), sdl_int($sw,0), sdl_int($sh,0), sdl_int($x,0), sdl_int($y,0), sdl_int($sw,0), sdl_int($sh,0), sdl_int($alpha,255));`
+    },
+
+    ;; sdl.scale(img, sx,sy,sw,sh, x,y,w,h [,alpha]): a part of an image
+    ;; into a rectangle of another size
+    scale = func (img, sx,sy,sw,sh, x,y,w,h, alpha) {
+        `sdl_part($img, sdl_int($sx,0), sdl_int($sy,0), sdl_int($sw,0), sdl_int($sh,0), sdl_int($x,0), sdl_int($y,0), sdl_int($w,0), sdl_int($h,0), sdl_int($alpha,255));`
+    },
+
+    ;; sdl.fill(rgba, x,y,w,h): a filled rectangle, with a color
+    ;; 0xRRGGBBAA
+    fill = func (rgba, x,y,w,h) {
+        `sdl_rect($rgba, sdl_int($x,0), sdl_int($y,0), sdl_int($w,0), sdl_int($h,0), 1);`
+    },
+
+    ;; sdl.rect(rgba, x,y,w,h): the outline of a rectangle
+    rect = func (rgba, x,y,w,h) {
+        `sdl_rect($rgba, sdl_int($x,0), sdl_int($y,0), sdl_int($w,0), sdl_int($h,0), 0);`
+    },
+
+    ;; sdl.line(rgba, x1,y1,x2,y2): a line
+    line = func (rgba, x1,y1,x2,y2) {
+        `sdl_line($rgba, sdl_int($x1,0), sdl_int($y1,0), sdl_int($x2,0), sdl_int($y2,0));`
     },
 
     ;; sdl.font(path, size): a font, or nil
@@ -472,25 +586,21 @@ pin sdl = [
         `:value sdl_font($path, $size)`
     },
 
-    ;; sdl.copy(tex, crop, rect): draws the part `crop` of a texture
-    ;; into `rect`. Both default to the whole.
-    copy = func (tex, crop, rect) {
-        `sdl_copy($tex, $crop, $rect);`
+    ;; sdl.text(fnt, s, x, y, rgba [,align]): a text with a color, with
+    ;; its top at `y`, and aligned at `x` by `align`: :left (default),
+    ;; :center, or :right
+    text = func (fnt, s, x, y, rgba, align) {
+        val a = match align {
+            :center => 1
+            :right  => 2
+            else    => 0
+        }
+        `sdl_text($fnt, $s, sdl_int($x,0), sdl_int($y,0), $rgba, sdl_int($a,0));`
     },
 
-    ;; sdl.color(0xRRGGBB): the color of the next drawings
-    color = func (rgb) {
-        `sdl_color($rgb);`
-    },
-
-    ;; sdl.fill(rect): a filled rectangle
-    fill = func (rect) {
-        `sdl_fill($rect);`
-    },
-
-    ;; sdl.write(fnt, text, pos): a text centered at `pos`
-    write = func (fnt, text, pos) {
-        `sdl_write($fnt, $text, $pos);`
+    ;; sdl.text_size(fnt, s): the width and the height of a text
+    text_size = func (fnt, s) {
+        return `:number sdl_text_dim($fnt, $s, 1)`, `:number sdl_text_dim($fnt, $s, 0)`
     },
 
     ;; sdl.play(path): plays a sound file
@@ -503,16 +613,4 @@ pin sdl = [
         return `:number SDL_MX`, `:number SDL_MY`
     },
 
-    ;; sdl.pct_to_pos(x, y): percentages of the window as a position
-    pct_to_pos = func (x, y) {
-        val w = `:number ({ int w=0,h=0; SDL_GetRendererOutputSize(SDL_REN,&w,&h); w; })`
-        val h = `:number ({ int w=0,h=0; SDL_GetRendererOutputSize(SDL_REN,&w,&h); h; })`
-        [ x = (w*x)//100, y = (h*y)//100 ]
-    },
-
-    ;; sdl.rect_vs_rect(r1, r2): the rectangles overlap
-    rect_vs_rect = func (r1, r2) {
-        (r1.x < r2.x+r2.w) && (r2.x < r1.x+r1.w) &&
-        (r1.y < r2.y+r2.h) && (r2.y < r1.y+r1.h)
-    },
 ]
