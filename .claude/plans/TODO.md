@@ -6,33 +6,17 @@ Everything that is pending in `env-sdl`. Plan: `261113-env-sdl.md`.
 
 Asked one at a time, each with the recommended option.
 
-0. **The design, `doc/design.md` (E2)**, shown on 2026-11-14. E3 does
-   not start before he sees it. Inside it, besides A2 and A3:
-   resources as native values and not indices (recommended: native
-   values; the three games change); SNKRX keeps its drawing in the
-   game, over a door in C (recommended: yes); the prefix `sdl_atm_`
-   for the names of the prelude (recommended: yes).
-
-2. **Names and fields of the events** (the author's, asked by the
-   compiler session as its item 46, not by this one): `:key.dn` with
-   `key=` or `name=`; `:mouse.mv`, `:mouse.motion`, or
-   `:mouse.button.dn`; a frame as the time and `:draw`, `:frame` and
-   `:draw`, or `:tick` and `:draw`. Recommended (by the compiler
-   session): the vocabulary of `pico.atm`: `:quit`; `:key.dn`,
-   `:key.up` with `key`; `:mouse.motion`, `:mouse.button.dn`,
-   `:mouse.button.up` with `x`, `y`, `button`; `:frame` then `:draw`.
-   Until answered: tags and fields in one place of the file.
-3. **One test mode for the three games**:
-   `SDL_ATM_FRAMES`, `_KEYS`, `_SHOT`, plus the mouse of Pingus.
-   Recommended: yes, with `SDL_ATM_MOUSE`, `SDL_ATM_MUTE`, and `@file`
-   for long scripts (`doc/design.md`, 9). Asked on 2026-11-14.
-4. **`lib/sdl.atm` leaves the compiler** (not asked yet), when this
+0. **The prefix of the C names of the prelude.** He answered
+   `atm_sdl` (2026-11-16), but the manual reserves `atm_` for the
+   runtime ("A `:prelude` must not declare names with these
+   prefixes"). Asked back: `atm_sdl_` as an exception that the
+   compiler session accepts, or `atmsdl_`. Recommended: `atmsdl_`,
+   unless the compiler session reserves `atm_sdl_` for this
+   environment. Until answered, the prelude keeps `sdl_`.
+4. **`lib/sdl.atm` leaves the compiler** (asked on 2026-11-16; he
+   did not understand the question; explained again), when this
    repository has it and its tests; `exs/rocks/` needs a home.
    Recommended: yes, Rocks as an example here.
-5. **How a game gets the environment** (not asked yet): a checkout at
-   a fixed commit, made by the setup script of the game, which
-   builds `atmos-sdl` from it; the game compiles with `atmos-sdl`.
-   Recommended: yes.
 
 ## B. Work known and not done
 
@@ -61,6 +45,16 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **Decided by the author on 2026-11-16**: the design of
+  `doc/design.md` goes ahead; resources are native values; SNKRX
+  keeps its drawing in the game; one test mode (`SDL_ATM_*`); the
+  vocabulary of events of `pico.atm`; a game gets the environment as
+  a checkout at a fixed commit and uses `include`, with the plain
+  compiler: **it does not need `atmos-sdl`**.
+- **`atmos-sdl` is kept in this repository** (build, tests, Rocks,
+  readme), as the wish relayed on 2026-11-14 for every environment.
+  Read his "does not need atmos-sdl" as about the games. Told to
+  him; he may say otherwise.
 - **Migrated to the new rules of `pin`** (2026-11-15, `20f974f`,
   `c18a419`; compiler at `09a7885`). Asked by the compiler session as
   approved by the author; not heard from him here. 16 lines to `pin`,

@@ -1,7 +1,7 @@
 # Design of the interface (a proposal)
 
-**Status: a proposal, shown to the author, not approved.** Nothing of
-it is built. It comes from [`inventory.md`](inventory.md); the numbers
+**Status: approved by the author on 2026-11-16** (section 12), and
+being built (E3). It comes from [`inventory.md`](inventory.md); the numbers
 in parentheses refer to its sections.
 
 ## 1. The shape
@@ -219,17 +219,27 @@ a second level `sdl.canvas` in the environment, puts most of the
 1414 lines of `eng.h` here, to serve one game and to copy LÖVE pixel
 by pixel.
 
-## 12. Open, for the author
+## 12. Decided by the author (2026-11-16)
 
-1. The whole proposal, before E3.
-2. Resources as native values (7), and not indices: the three games
-   change.
-3. SNKRX keeps its drawing (11).
-4. The names and the fields of the events (3), item A2.
-5. One test mode (9), item A3.
-6. The prefix `sdl_atm_` in the prelude (8).
+1. Resources are native values (7).
+2. SNKRX keeps its drawing (11).
+3. The events have the vocabulary of `pico.atm` (3).
+4. One test mode (9).
+5. A game gets the environment as a checkout at a fixed commit, and
+   brings it with `include "sdl.atm"`, with the plain compiler and
+   the libraries in `ATMOS_LDFLAGS`. It does not need `atmos-sdl`,
+   which stays as the compiler of the examples and of the tests of
+   this repository.
 
-To verify with the sessions of the games, before E3, each with its
-own tests: the software path against the screenshots of Flare; the
-texture path against those of Pingus; the time of step 2 against the
-traces of Flare; the bytes of the screenshots.
+Open: the prefix of the names of the prelude (8). He answered
+`atm_sdl`, but `atm_` is reserved by the runtime; asked back.
+
+Added after the migration to the new rules of `pin`: a function of
+the environment returns plain numbers (`val x, y = sdl.mouse()`), and
+never a small table, which the caller would have to `pin`. So
+`sdl.pct_to_pos` of today goes away, or returns two numbers.
+
+To verify with the sessions of the games, each with its own tests:
+the software path against the screenshots of Flare; the texture path
+against those of Pingus; the time of step 2 against the traces of
+Flare; the bytes of the screenshots.
