@@ -228,7 +228,6 @@ by pixel.
    the libraries in `ATMOS_LDFLAGS`. It does not need `atmos-sdl`,
    which stays as the compiler of the examples and of the tests of
    this repository.
-
 6. The names of the prelude keep the prefix `sdl_` (8).
 7. Rocks lives in this repository, as `exs/rocks/`; `lib/sdl.atm`
    and `exs/rocks/` left the compiler.
@@ -236,9 +235,47 @@ by pixel.
 Added after the migration to the new rules of `pin`: a function of
 the environment returns plain numbers (`val x, y = sdl.mouse()`), and
 never a small table, which the caller would have to `pin`. So
-`sdl.pct_to_pos` of today goes away, or returns two numbers.
+`sdl.pct_to_pos` went away.
+
+## 13. What changed while building (E3)
+
+The interface as built is [`api.md`](api.md). It differs from the
+sections above where the answers of the games
+([`requests/answers.md`](requests/answers.md)) or the tests asked:
+
+- `:frame [n, us]`, in microseconds and not `ms`: the frames of SNKRX
+  are not whole milliseconds.
+- `:key.dn [key, code]`: `code` is the name of the scancode, which
+  Flare binds by.
+- `sdl.window [fixed=true]` and `SDL_ATM_FRAMES=n` with no `ms`: the
+  n-th frame ends at n*1000000/fps us, so that fps frames are exactly
+  1 s (SNKRX).
+- `sdl.clock(f)` carries the remainder to the next frame; `:frame`
+  keeps the real time.
+- `sdl.window [passes=[:draw, :overlay]]`: the second pass of SNKRX.
+- `sdl_on_flush(f)`: `f(render)` after the passes, before the
+  screenshot; `render` is 0 in a frame of the test mode with no
+  screenshot, unless `SDL_ATM_RENDER` (SNKRX).
+- `sdl.image(path, raw)`: an image keeps the format of its file. In
+  the software path it is converted to ARGB8888 at its first draw,
+  unless `raw` (Flare measured that the pixels of a blit with alpha
+  differ). With the renderer it is not converted: converting changed
+  a level of a pixel there (`tst/image`), which Pingus would see.
+- A fill with alpha in the software path is blended (through a
+  surface), as with the renderer; Flare's own fill, with no blending,
+  is the same for an opaque color.
+- Screenshots are PNG, compared by pixels: the three games accepted
+  it. No `.bmp`.
+- The names of the door in C have the prefix `sdl_` (decided); the
+  names `sdl_atm_...` of section 8 became `sdl_win`, `sdl_ren`,
+  `sdl_scr`, `sdl_size`, `sdl_sfc`, `sdl_tex`, `sdl_new_image`,
+  `sdl_on_flush`.
+- Not built, left for when a game needs them: the draw with flips,
+  rotation, and tint (`sdl.draw_ex`, for Tux); the loop points of a
+  music (Tux); blend modes at the draw (Flare draws with an additive
+  mode, over the door in C).
 
 To verify with the sessions of the games, each with its own tests:
 the software path against the screenshots of Flare; the texture path
-against those of Pingus; the time of step 2 against the traces of
-Flare; the bytes of the screenshots.
+against those of Pingus; the time against the traces of Flare; the
+order of the time and `:frame` against the traces of SNKRX (asked).

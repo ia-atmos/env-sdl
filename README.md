@@ -3,8 +3,9 @@
 An [SDL2][sdl] environment for [Atmos][atmos]: the window, the input, the
 images, the text, the sound, and the time, with a test mode with no screen.
 
-- [`sdl.atm`](sdl.atm): the environment (its header documents the events
-  and the functions, which are in the table `sdl`).
+- [`sdl.atm`](sdl.atm): the environment, with its functions in the
+  table `sdl`.
+- [`doc/api.md`](doc/api.md): the reference.
 - `atmos-sdl`: the Atmos compiler dedicated to SDL, built by `make`.
 - [`tst/`](tst/): the tests (`make tests`).
 - [`exs/rocks/`](exs/rocks/): a spaceship shooter for 2 players.
@@ -39,9 +40,9 @@ spawn {
 await :key.dn
 ```
 
-A program that starts with `include "sdl.atm"` also works, with
-`atmos-sdl` or with the plain compiler and the libraries in
-`ATMOS_LDFLAGS`.
+A game gets the environment as a checkout of this repository at a fixed
+commit, and starts with `include "sdl.atm"`, with the plain compiler and
+the libraries in `ATMOS_LDFLAGS` (see [`doc/api.md`](doc/api.md)).
 
 # Tests
 
@@ -50,19 +51,13 @@ make tests                  # or: tst/run.sh [name ...]
 ATMOS_ASAN=1 make tests     # with the address sanitizer
 ```
 
-The tests run with no screen (`SDL_VIDEODRIVER=dummy`), with a fixed number
-of frames and scripted input, and compare traces and screenshots:
-
-```
-SDL_ATM_FRAMES=n:ms         runs `n` frames of `ms` milliseconds, then quits
-SDL_ATM_KEYS=f:dn:A,...     presses (`dn`) or releases (`up`) keys at frames
-SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b    moves the mouse, or a button
-SDL_ATM_SHOT=f:x.png,...    saves the screen at frames
-SDL_ATM_MUTE=1              opens no audio device
-```
+The tests run with no screen (`SDL_VIDEODRIVER=dummy`), with a fixed
+number of frames and scripted input, and compare their traces and their
+screenshots, pixel by pixel. The test mode is in
+[`doc/api.md`](doc/api.md#the-test-mode).
 
 # Status
 
-This repository is being written. It starts as `lib/sdl.atm` of the
-compiler, and grows to serve the games ported over SDL2. The plan is in
-[`.claude/plans/`](.claude/plans/).
+The environment of the three games ported over SDL2 (Pingus, SNKRX,
+Flare), and of SuperTux. It started as `lib/sdl.atm` of the compiler.
+The plan and what is pending are in [`.claude/plans/`](.claude/plans/).

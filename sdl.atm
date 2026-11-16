@@ -1,12 +1,12 @@
-;; A basic SDL environment.
-;;
-;;      atmos-sdl game.atm
-;;
-;; `atmos-sdl` is the compiler dedicated to this environment (`make`).
-;; With the plain compiler, the program starts with the `include`:
+;; The SDL environment of Atmos: the window, the input, the images, the
+;; text, the sound, the time, and a test mode with no screen. The
+;; reference is `doc/api.md`.
 ;;
 ;;      include "sdl.atm"
 ;;      ATMOS_LDFLAGS="-lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer" atmos game.atm
+;;
+;; or, with no `include`, with `atmos-sdl`, the compiler dedicated to this
+;; environment (`make`).
 ;;
 ;; The program runs inside the loop of SDL, which emits:
 ;;
@@ -26,12 +26,13 @@
 ;;                                  microseconds
 ;;      :draw                       once per frame, to redraw the screen
 ;;
-;; A frame is, in this order: the input, the time, `:frame`, `:draw`.
+;; A frame is, in this order: the input, the time, `:frame`, the passes
+;; of drawing (`:draw`), the function of flush, the screenshot.
 ;; The time passes once per frame, so that `await 1s` and
 ;; `loop us on :clock` work as usual.
 ;;
-;; Textures and fonts are native values: `pin` them to release them with
-;; their block, or let them go with their last reference.
+;; Images, fonts, and sounds are native values: `pin` them to release
+;; them with their block, or let them go with their last reference.
 ;;
 ;; To test with no screen, set `SDL_VIDEODRIVER=dummy` and:
 ;;

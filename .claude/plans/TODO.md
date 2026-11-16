@@ -10,25 +10,13 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- **E3, in course.** Done: the events of the design (`key`, the
-  mouse, `:frame [n,us]`, the scancode as `code`), `sdl.mouse()`, `SDL_ATM_MOUSE`,
-  `SDL_ATM_MUTE` (12 tests). Also: images as a surface
-  with a texture made at the first draw; `sdl.draw`, `sdl.part`,
-  `sdl.scale`, `sdl.fill`, `sdl.rect`, `sdl.line` with plain numbers
-  and a color `0xRRGGBBAA` in each call; `sdl.text` with a color and
-  an alignment, `sdl.text_size`; `sdl.copy`, `sdl.color`,
-  `sdl.write`, `sdl.pct_to_pos`, `sdl.rect_vs_rect` removed (the last
-  two are of Rocks now). Also: `sdl.sound` (a value),
-  `sdl.play` with a volume, `sdl.music`, `sdl.music_stop`,
-  `sdl.volume`; Rocks loads its sounds once. Also: `sdl.window` with
-  `logical`, `fps`, `fixed`, `software` (a screen surface, blits,
-  `sdl.image(path, raw)`). Also: `sdl.display`,
-  `sdl.key(name)`, `sdl.clock(f)` with the carry, `sdl.frame()`,
-  `sdl.testing()`. Also: the door in C
-  (`sdl_win`, `sdl_ren`, `sdl_scr`, `sdl_size`, `sdl_sfc`, `sdl_tex`,
-  `sdl_new_image`, `sdl_on_flush`), `passes=[...]` of drawing,
-  `SDL_ATM_RENDER`. Also: `@file` in the test variables. To do: `doc/api.md`; the
-  design and the readme brought up to date.
+- **E4: Pingus over the environment**, with its session; baseline
+  `cc5fe72` of `ia-atmos/sdl-pingus`. Tell it the commit of E3.
+- **Not built in E3**, for when a game needs them: `sdl.draw_ex`
+  (flips, rotation, tint; Tux), the loop points of a music (Tux),
+  blend modes at the draw (Flare, over the door).
+- **`inventory/pingus.md` is out of date** in `res_desc`, `LANG`, and
+  `Sprite` (Pingus changed `engine.atm` in its migration to `pin`).
 - **Asked to SNKRX** (2026-11-16): whether its traces need `:frame`
   before the clock (today: input, clock, `:frame`, `:draw`).
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
@@ -64,6 +52,9 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **E3 is done** (2026-11-16): `sdl.atm` grown to the design, 28 tests
+  (also with `ATMOS_ASAN=1`), `doc/api.md`. What differs from the
+  design is in `doc/design.md`, 13.
 - **Decided by the author on 2026-11-16**: the design of
   `doc/design.md` goes ahead; resources are native values; SNKRX
   keeps its drawing in the game; one test mode (`SDL_ATM_*`); the
