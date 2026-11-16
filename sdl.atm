@@ -42,7 +42,8 @@
 ;;                              (by the name of the key)
 ;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
 ;;                              moves the mouse, presses or releases the
-;;                              button `b` at a position, at frames
+;;                              button `b` at a position (moving there
+;;                              first, if it is elsewhere), at frames
 ;;      SDL_ATM_SHOT=f:x.png,...  saves the screen at frames
 ;;      SDL_ATM_MUTE=1          opens no audio device
 ;;      SDL_ATM_RENDER=1        a frame with no screenshot is rendered too
@@ -85,7 +86,7 @@ static SDL_Surface*  SDL_SCR = NULL;    // the screen, in the software path
 static SDL_Texture*  SDL_SCR_TEX = NULL;
 static int           SDL_LW  = 0;       // the logical size, or 0
 static int           SDL_LH  = 0;
-static int           SDL_FPS = 60;      // the cap of frames per second
+static int           SDL_FPS = 60;      // the cap of frames per second (0: none)
 static int           SDL_FIXED = 0;     // frames of exactly 1/SDL_FPS s
 static int           SDL_SND = 0;       // the audio device is open
 static double        SDL_SND_VOL = 1.0; // the volume of the sounds
@@ -211,7 +212,7 @@ static void sdl_window (AVal t) {
     int w = (int) sdl_fld(t, "width",  640);
     int h = (int) sdl_fld(t, "height", 480);
     int fps = (int) sdl_fld(t, "fps", 60);
-    SDL_FPS = (fps > 0) ? fps : 60;
+    SDL_FPS = (fps > 0) ? fps : 0;
     AVal k = a_strz("fixed");
     SDL_FIXED = a_truthy(sdl_get(t, k));
     a_dec(k);
@@ -812,10 +813,15 @@ static AStatus sdl_script (const char* var, int frame) {
             int x=0, y=0, but=1;
             if (sscanf(arg, "mv:%d:%d", &x, &y) == 2) {
                 st = sdl_emit_mouse(SDL_EVT_MOTION, x, y, 0);
-            } else if (sscanf(arg, "dn:%d:%d:%d", &x, &y, &but) >= 2) {
-                st = sdl_emit_mouse(SDL_EVT_BUT_DN, x, y, but);
-            } else if (sscanf(arg, "up:%d:%d:%d", &x, &y, &but) >= 2) {
-                st = sdl_emit_mouse(SDL_EVT_BUT_UP, x, y, but);
+            } else if (sscanf(arg, "dn:%d:%d:%d", &x, &y, &but) >= 2
+                    || sscanf(arg, "up:%d:%d:%d", &x, &y, &but) >= 2) {
+                // as a real mouse, it moves to where the button changes
+                if (x!=SDL_MX || y!=SDL_MY) {
+                    st = sdl_emit_mouse(SDL_EVT_MOTION, x, y, 0);
+                }
+                if (st == A_OK) {
+                    st = sdl_emit_mouse((arg[0]=='d') ? SDL_EVT_BUT_DN : SDL_EVT_BUT_UP, x, y, but);
+                }
             }
         } else if (!strncmp(arg, "dn:", 3)) {
             st = sdl_emit_key_name(SDL_EVT_KEY_DN, arg+3);
@@ -886,7 +892,8 @@ int main (int argc, char** argv) {
         if (fixed) {
             us = (int64_t)fixed * 1000;
         } else if (frames>0 || SDL_FIXED) {
-            us = ((int64_t)frame*1000000)/SDL_FPS - ((int64_t)(frame-1)*1000000)/SDL_FPS;
+            int fps = (SDL_FPS > 0) ? SDL_FPS : 60;
+            us = ((int64_t)frame*1000000)/fps - ((int64_t)(frame-1)*1000000)/fps;
         } else {
             us = (int64_t)((now-prv)*1000000/freq);
         }
@@ -938,7 +945,7 @@ int main (int argc, char** argv) {
         // the cap: the rest of the frame, but not in the test mode
         if (frames>0 && frame>=frames) {
             quit = 1;
-        } else if (frames <= 0) {
+        } else if (frames<=0 && SDL_FPS>0) {
             Uint64 per   = freq / SDL_FPS;
             Uint64 spent = SDL_GetPerformanceCounter() - now;
             if (spent < per) {
@@ -984,7 +991,7 @@ pin sdl = [
     ;;             software=, passes=]
     ;;  - logical: the size that the program draws in, scaled to the
     ;;    window (default: the size of the window)
-    ;;  - fps: the cap of frames per second (default 60)
+    ;;  - fps: the cap of frames per second (default 60; 0, no cap)
     ;;  - fixed: if true, the time of a frame is exactly 1/fps s, and
     ;;    not the time measured (fps frames are exactly 1 s); the test
     ;;    mode is always so

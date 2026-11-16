@@ -122,7 +122,8 @@ Opens the window. With no window, there is no `:draw`.
 - `title`, `width`, `height`: default `'Atmos'`, 640, 480.
 - `logical`: the size that the program draws in, scaled to the window.
 - `fps`: the cap of frames per second, less the time spent in the frame
-  (default 60).
+  (default 60; 0, no cap: frames as fast as they go). The time of a
+  fixed frame with no cap is 1/60 s.
 - `fixed`: if true, the time of a frame is exactly 1/fps s, and not the
   time measured: the n-th frame ends at n*1000000/fps us, so that `fps`
   frames are exactly 1 s. The test mode is always so, unless it gives
@@ -232,7 +233,9 @@ SDL_ATM_KEYS=f:dn:A,...     presses (dn) or releases (up) a key at a
                             frame, by the name of the key
 SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
                             moves the mouse, presses or releases the
-                            button b at a position, at a frame
+                            button b at a position, at a frame; a
+                            press or a release elsewhere moves the
+                            mouse there first (:mouse.motion)
 SDL_ATM_SHOT=f:x.png,...    saves the screen at a frame, in PNG
 SDL_ATM_MUTE=1              opens no audio device
 SDL_ATM_RENDER=1            a frame with no screenshot is rendered too

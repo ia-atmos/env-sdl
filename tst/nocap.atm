@@ -1,0 +1,8 @@
+;; With fps=0 there is no cap; a fixed frame is then 1/60 s.
+;; env: SDL_ATM_FRAMES=3
+
+sdl.window [title="nocap", width=20, height=20, fps=0]
+
+loop e on :frame {
+    print(e.n, e.us)
+}

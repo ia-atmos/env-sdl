@@ -14,6 +14,10 @@ Asked one at a time, each with the recommended option.
   `cc5fe72` of `ia-atmos/sdl-pingus`. Told on 2026-11-16, with the
   commit `2723b34` and a map of its layer to the environment; it
   moves. Tux and Flare were told the same commit.
+  Pingus started on 2026-11-16 (its `main` at `9f4bc45`) and asked: a
+  scripted press moves the mouse first (done), `fps=0` is no cap
+  (done). It renames its own `:frame` of sprites, which clashes with
+  the `:frame` of the environment: other ports may meet the same.
 - **Not built in E3**, for when a game needs them: `sdl.draw_ex`
   (flips, rotation, tint; Tux), the loop points of a music (Tux),
   blend modes at the draw (Flare, over the door).
