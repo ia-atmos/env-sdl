@@ -31,12 +31,13 @@ Asked one at a time, each with the recommended option.
   `sdl.key(name)`, `sdl.clock(f)`; the door in C (waits for the
   prefix, A0); `@file` in the test variables; screenshots as `.bmp`;
   `doc/api.md`.
-- **Asked to the sessions of the games on 2026-11-16**, no answer
-  yet: Pingus (pixels or bytes for the screenshots; the fps cap; the
-  commit of its baseline), SNKRX (a hook to flush after `:draw`; a
-  fixed frame time; its baseline), Flare (does it await a clock;
-  scancodes or key names; BMP or PNG; the raw image format). Tux was
-  told how its requests land.
+- **Pingus and SNKRX answered** (2026-11-16):
+  `doc/requests/answers.md`, with what changes in the design
+  (`:frame` in microseconds, a fixed rate from the program, the carry
+  of `sdl.clock`, a callback of flush in C, the second pass of
+  drawing of SNKRX, still open). Baselines: Pingus `cc5fe72`, SNKRX
+  `2bddee7` or later. `inventory/pingus.md` is out of date in three
+  spots of `engine.atm`. **Flare has not answered.**
 - E4..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
   `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
