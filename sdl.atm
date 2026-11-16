@@ -44,6 +44,8 @@
 ;;                              button `b` at a position, at frames
 ;;      SDL_ATM_SHOT=f:x.png,...  saves the screen at frames
 ;;      SDL_ATM_MUTE=1          opens no audio device
+;;      SDL_ATM_RENDER=1        a frame with no screenshot is rendered too
+;;                              (see `sdl_on_flush`)
 ;;
 ;; The frames count from 1.
 
@@ -93,6 +95,8 @@ static Uint8         SDL_KEYS[SDL_NUM_SCANCODES];  // pressed, by scancode
 static double        SDL_CLOCK = 1.0;   // the factor of the clock
 static int           SDL_FRAME = 0;     // the current frame, from 1
 static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES)
+static void        (*SDL_FLUSH) (int) = NULL;  // see sdl_on_flush
+static char*         SDL_PASSES[8] = { NULL };  // the tags of the passes
 
 static const char* SDL_KIND_IMG = "sdl.image";
 static const char* SDL_KIND_FNT = "sdl.font";
@@ -223,6 +227,17 @@ static void sdl_window (AVal t) {
         fprintf(stderr, "sdl : %s\n", SDL_GetError());
         exit(1);
     }
+    // the passes of drawing: the tags of a vector, or "draw"
+    k = a_strz("passes");
+    AVal ps = sdl_get(t, k);
+    a_dec(k);
+    for (int i=0; i<7; i++) {
+        AVal p = sdl_get(ps, a_int(i));
+        if (p.type != A_STR) {
+            break;
+        }
+        SDL_PASSES[i] = strdup(A_STR_OF(p)->s);
+    }
     k = a_strz("software");
     int soft = a_truthy(sdl_get(t, k));
     a_dec(k);
@@ -269,13 +284,80 @@ static SDL_Texture* sdl_img_tex (SDL_Image* img) {
     return img->tex;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// THE DOOR IN C
+//
+// For the C of a program, which draws by itself or keeps pointers of
+// SDL. The program keeps the values alive: a pointer that it takes from
+// an image is valid while the image is.
+//
+//  SDL_Window*   sdl_win  (void)       the window, or NULL
+//  SDL_Renderer* sdl_ren  (void)       the renderer, or NULL
+//  SDL_Surface*  sdl_scr  (void)       the screen, in the software path
+//  void          sdl_size (int* w, int* h)
+//                                      the size the program draws in
+//  SDL_Surface*  sdl_sfc  (AVal img)   the pixels of an image, or NULL
+//  SDL_Texture*  sdl_tex  (AVal img)   the texture of an image, or NULL
+//  AVal          sdl_new_image (SDL_Surface* sfc)
+//                                      an image that owns `sfc`
+//  void          sdl_on_flush (void (*f) (int render))
+//                                      `f` runs at each frame, after the
+//                                      passes of drawing, and before the
+//                                      screenshot and the present;
+//                                      `render` is 0 in a frame of the
+//                                      test mode with no screenshot
+//  int           SDL_FRAME, SDL_TESTING    as sdl.frame(), sdl.testing()
+///////////////////////////////////////////////////////////////////////////////
+
+static SDL_Window*   sdl_win (void) { return SDL_WIN; }
+static SDL_Renderer* sdl_ren (void) { return SDL_REN; }
+static SDL_Surface*  sdl_scr (void) { return SDL_SCR; }
+
+static void sdl_size (int* w, int* h) {
+    *w = *h = 0;
+    if (SDL_SCR != NULL) {
+        *w = SDL_SCR->w;
+        *h = SDL_SCR->h;
+    } else if (SDL_LW>0 && SDL_LH>0) {
+        *w = SDL_LW;
+        *h = SDL_LH;
+    } else if (SDL_REN != NULL) {
+        SDL_GetRendererOutputSize(SDL_REN, w, h);
+    }
+}
+
+static SDL_Surface* sdl_sfc (AVal v) {
+    SDL_Image* img = sdl_img(v);
+    return (img == NULL) ? NULL : img->sfc;
+}
+
+static SDL_Texture* sdl_tex (AVal v) {
+    return sdl_img_tex(sdl_img(v));
+}
+
+static AVal sdl_new_image (SDL_Surface* sfc) {
+    if (sfc == NULL) {
+        return a_nil();
+    }
+    SDL_Image* img = malloc(sizeof(SDL_Image));
+    img->sfc = sfc;
+    img->tex = NULL;
+    img->raw = 1;
+    img->cvt = 0;
+    return a_nat(img, sdl_img_fin, SDL_KIND_IMG);
+}
+
+static void sdl_on_flush (void (*f) (int render)) {
+    SDL_FLUSH = f;
+}
+
 static AVal sdl_font (AVal path, AVal size) {
     TTF_Font* fnt = (path.type == A_STR && a_isnum(size))
         ? TTF_OpenFont(A_STR_OF(path)->s, (int)a_dbl(size)) : NULL;
     return (fnt == NULL) ? a_nil() : a_nat(fnt, sdl_fnt_fin, SDL_KIND_FNT);
 }
 
-static int sdl_dim (AVal v, int width) {
+static int sdl_img_dim (AVal v, int width) {
     SDL_Image* img = sdl_img(v);
     if (img == NULL) {
         return 0;
@@ -645,6 +727,19 @@ static AStatus sdl_emit_frame (int n, int64_t us) {
     return sdl_emit_f(SDL_EVT_FRAME, &f);
 }
 
+// Whether a variable of the test mode has an entry for a frame.
+static int sdl_script_has (const char* var, int frame) {
+    const char* s = getenv(var);
+    while (s!=NULL && *s!='\0') {
+        if (atoi(s) == frame) {
+            return 1;
+        }
+        s += strcspn(s, ",");
+        s += (*s == ',');
+    }
+    return 0;
+}
+
 // Test script: the entries `frame:...` of a variable that are due.
 static AStatus sdl_script (const char* var, int frame) {
     AStatus st = A_OK;
@@ -782,8 +877,19 @@ int main (int argc, char** argv) {
             if (SDL_SCR != NULL) {
                 SDL_FillRect(SDL_SCR, NULL, SDL_MapRGBA(SDL_SCR->format, 0, 0, 0, 255));
             }
-            st = sdl_emit(SDL_EVT_DRAW);
-            sdl_script("SDL_ATM_SHOT", frame);
+            if (SDL_PASSES[0] == NULL) {
+                st = sdl_emit(SDL_EVT_DRAW);
+            }
+            for (int i=0; st==A_OK && SDL_PASSES[i]!=NULL; i++) {
+                st = sdl_emit(SDL_PASSES[i]);
+            }
+            int shot = sdl_script_has("SDL_ATM_SHOT", frame);
+            if (st==A_OK && SDL_FLUSH!=NULL) {
+                SDL_FLUSH(!SDL_TESTING || shot || getenv("SDL_ATM_RENDER")!=NULL);
+            }
+            if (shot) {
+                sdl_script("SDL_ATM_SHOT", frame);
+            }
             if (SDL_SCR != NULL) {
                 SDL_UpdateTexture(SDL_SCR_TEX, NULL, SDL_SCR->pixels, SDL_SCR->pitch);
                 SDL_RenderCopy(SDL_REN, SDL_SCR_TEX, NULL, NULL);
@@ -822,6 +928,9 @@ int main (int argc, char** argv) {
         SDL_FreeSurface(SDL_SCR);
         SDL_DestroyTexture(SDL_SCR_TEX);
     }
+    for (int i=0; SDL_PASSES[i]!=NULL; i++) {
+        free(SDL_PASSES[i]);
+    }
     free(SDL_MUS_PATH);
     if (SDL_SND) {
         Mix_CloseAudio();
@@ -834,7 +943,7 @@ int main (int argc, char** argv) {
 
 pin sdl = [
     ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=,
-    ;;             software=]
+    ;;             software=, passes=]
     ;;  - logical: the size that the program draws in, scaled to the
     ;;    window (default: the size of the window)
     ;;  - fps: the cap of frames per second (default 60)
@@ -845,6 +954,8 @@ pin sdl = [
     ;;    an image is drawn with SDL_BlitSurface, a fill with
     ;;    SDL_FillRect, and the surface is copied to the window at each
     ;;    frame; a screenshot is the surface
+    ;;  - passes: the tags of the passes of drawing, emitted in order at
+    ;;    each frame (default [:draw]; at most 7)
     window = func (t) {
         `sdl_window($t);`
     },
@@ -859,7 +970,7 @@ pin sdl = [
 
     ;; sdl.size(img): the width and the height of an image
     size = func (img) {
-        return `:number sdl_dim($img, 1)`, `:number sdl_dim($img, 0)`
+        return `:number sdl_img_dim($img, 1)`, `:number sdl_img_dim($img, 0)`
     },
 
     ;; sdl.draw(img, x, y): the whole image at a position

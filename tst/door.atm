@@ -1,0 +1,38 @@
+;; The door in C: the renderer, the size, the pixels and the texture of
+;; an image, an image made in C, and the function of flush, which knows
+;; whether the frame is rendered (only the frame 3 has a screenshot).
+;; env: SDL_ATM_FRAMES=4:16 SDL_ATM_SHOT=3:out/door-3.png
+
+```:prelude
+static void door_flush (int render) {
+    printf("flush\t%d\t%d\n", SDL_FRAME, render);
+    if (render) {
+        SDL_SetRenderDrawColor(sdl_ren(), 0, 255, 0, 255);
+        SDL_Rect r = { 6, 0, 2, 2 };
+        SDL_RenderFillRect(sdl_ren(), &r);
+    }
+}
+static AVal door_image (void) {
+    SDL_Surface* sfc = SDL_CreateRGBSurfaceWithFormat(0, 2, 2, 32, SDL_PIXELFORMAT_ARGB8888);
+    SDL_FillRect(sfc, NULL, SDL_MapRGBA(sfc->format, 0, 0, 255, 255));
+    return sdl_new_image(sfc);
+}
+```
+
+sdl.window [title="door", width=8, height=4]
+`sdl_on_flush(door_flush);`
+
+print(`:boolean sdl_win() != NULL`, `:boolean sdl_ren() != NULL`, `:boolean sdl_scr() == NULL`)
+print(`:number ({ int w, h; sdl_size(&w, &h); w; })`, `:number ({ int w, h; sdl_size(&w, &h); h; })`)
+
+pin img = sdl.image("res/quad.png")
+print(`:number sdl_sfc($img)->w`, `:boolean sdl_sfc(a_nil()) == NULL`)
+print(`:number ({ Uint8 r,g,b,a; SDL_Surface* s = sdl_sfc($img); SDL_GetRGBA(((Uint32*)s->pixels)[0], s->format, &r,&g,&b,&a); r; })`)
+
+pin blue = `:value door_image()`
+print(type(blue), sdl.size(blue))
+
+loop on :draw {
+    sdl.draw(blue, 0, 0)
+    `SDL_RenderCopy(sdl_ren(), sdl_tex($img), NULL, &(SDL_Rect){2,0,4,2});`
+}

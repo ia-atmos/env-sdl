@@ -1,0 +1,21 @@
+;; The passes of drawing, in order, and the function of flush after
+;; them, rendering every frame with SDL_ATM_RENDER.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_RENDER=1
+
+```:prelude
+static void passes_flush (int render) {
+    printf("flush\t%d\n", render);
+}
+```
+
+sdl.window [title="passes", width=8, height=4, passes=[:draw, :overlay]]
+`sdl_on_flush(passes_flush);`
+
+spawn {
+    loop on :overlay {
+        print(:overlay)
+    }
+}
+loop on :draw {
+    print(:draw)
+}

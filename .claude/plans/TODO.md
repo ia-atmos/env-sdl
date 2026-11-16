@@ -24,8 +24,13 @@ Asked one at a time, each with the recommended option.
   `logical`, `fps`, `fixed`, `software` (a screen surface, blits,
   `sdl.image(path, raw)`). Also: `sdl.display`,
   `sdl.key(name)`, `sdl.clock(f)` with the carry, `sdl.frame()`,
-  `sdl.testing()`. To do, in this order: the door in C; `@file` in the test variables;
+  `sdl.testing()`. Also: the door in C
+  (`sdl_win`, `sdl_ren`, `sdl_scr`, `sdl_size`, `sdl_sfc`, `sdl_tex`,
+  `sdl_new_image`, `sdl_on_flush`), `passes=[...]` of drawing,
+  `SDL_ATM_RENDER`. To do, in this order: `@file` in the test variables;
   `doc/api.md`.
+- **Asked to SNKRX** (2026-11-16): whether its traces need `:frame`
+  before the clock (today: input, clock, `:frame`, `:draw`).
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
   `doc/requests/answers.md`, with what changes in the design
   (`:frame` in microseconds, the scancode in the key events, a raw
