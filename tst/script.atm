@@ -1,0 +1,13 @@
+;; The entries of the test mode in a file (`@file`), one per line.
+;; env: SDL_ATM_FRAMES=5:16 SDL_ATM_KEYS=@res/keys.txt
+
+sdl.window [title="script", width=20, height=20]
+
+spawn {
+    loop e on :key.up {
+        print(sdl.frame(), :up, e.key)
+    }
+}
+loop e on :key.dn {
+    print(sdl.frame(), :dn, e.key)
+}

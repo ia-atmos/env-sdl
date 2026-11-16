@@ -47,7 +47,8 @@
 ;;      SDL_ATM_RENDER=1        a frame with no screenshot is rendered too
 ;;                              (see `sdl_on_flush`)
 ;;
-;; The frames count from 1.
+;; The frames count from 1. A value `@file` gives the entries in a file,
+;; separated by commas or new lines.
 
 ```:prelude
 #include <stdio.h>
@@ -727,15 +728,51 @@ static AStatus sdl_emit_frame (int n, int64_t us) {
     return sdl_emit_f(SDL_EVT_FRAME, &f);
 }
 
+// The entries of a variable of the test mode, separated by commas or
+// new lines: its value, or the contents of the file `x` if its value is
+// `@x`. Read once. NULL if not set.
+static const char* sdl_script_src (const char* var) {
+    static struct { const char* var; char* src; } CACHE[8];
+    static int N = 0;
+    for (int i=0; i<N; i++) {
+        if (!strcmp(CACHE[i].var, var)) {
+            return CACHE[i].src;
+        }
+    }
+    const char* v = getenv(var);
+    char* src = NULL;
+    if (v != NULL && v[0] == '@') {
+        FILE* f = fopen(v+1, "rb");
+        if (f == NULL) {
+            fprintf(stderr, "sdl : %s : cannot open %s\n", var, v+1);
+            exit(1);
+        }
+        fseek(f, 0, SEEK_END);
+        long n = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        src = malloc(n + 1);
+        src[fread(src, 1, n, f)] = '\0';
+        fclose(f);
+    } else if (v != NULL) {
+        src = strdup(v);
+    }
+    if (N < 8) {
+        CACHE[N].var = var;
+        CACHE[N].src = src;
+        N++;
+    }
+    return src;
+}
+
 // Whether a variable of the test mode has an entry for a frame.
 static int sdl_script_has (const char* var, int frame) {
-    const char* s = getenv(var);
+    const char* s = sdl_script_src(var);
     while (s!=NULL && *s!='\0') {
         if (atoi(s) == frame) {
             return 1;
         }
-        s += strcspn(s, ",");
-        s += (*s == ',');
+        s += strcspn(s, ",\n");
+        s += (*s==',' || *s=='\n');
     }
     return 0;
 }
@@ -743,12 +780,12 @@ static int sdl_script_has (const char* var, int frame) {
 // Test script: the entries `frame:...` of a variable that are due.
 static AStatus sdl_script (const char* var, int frame) {
     AStatus st = A_OK;
-    const char* s = getenv(var);
+    const char* s = sdl_script_src(var);
     while (s!=NULL && *s!='\0' && st==A_OK) {
         char item[256];
-        size_t n = strcspn(s, ",");
+        size_t n = strcspn(s, ",\n");
         snprintf(item, sizeof(item), "%.*s", (int)n, s);
-        s += n + (s[n] == ',');
+        s += n + (s[n]==',' || s[n]=='\n');
         char* arg = strchr(item, ':');
         if (arg==NULL || atoi(item)!=frame) {
             continue;

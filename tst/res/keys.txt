@@ -1,0 +1,3 @@
+2:dn:A
+3:up:A
+4:dn:Left Shift

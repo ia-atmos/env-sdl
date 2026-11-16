@@ -27,8 +27,8 @@ Asked one at a time, each with the recommended option.
   `sdl.testing()`. Also: the door in C
   (`sdl_win`, `sdl_ren`, `sdl_scr`, `sdl_size`, `sdl_sfc`, `sdl_tex`,
   `sdl_new_image`, `sdl_on_flush`), `passes=[...]` of drawing,
-  `SDL_ATM_RENDER`. To do, in this order: `@file` in the test variables;
-  `doc/api.md`.
+  `SDL_ATM_RENDER`. Also: `@file` in the test variables. To do: `doc/api.md`; the
+  design and the readme brought up to date.
 - **Asked to SNKRX** (2026-11-16): whether its traces need `:frame`
   before the clock (today: input, clock, `:frame`, `:draw`).
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
