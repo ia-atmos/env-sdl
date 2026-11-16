@@ -1,0 +1,27 @@
+;; A frame: the input, the time, `:frame` with its number and its
+;; time, and then `:draw`.
+;; env: SDL_ATM_FRAMES=3:20 SDL_ATM_KEYS=2:dn:A
+
+sdl.window [title="frame", width=20, height=20]
+
+spawn {
+    loop e on :key.dn {
+        print(:key, e.key)
+    }
+}
+spawn {
+    loop us on :clock {
+        print(:clock, us)
+    }
+}
+spawn {
+    loop e on :frame {
+        print(:frame, e.n, e.ms)
+    }
+}
+spawn {
+    loop on :draw {
+        print(:draw)
+    }
+}
+await false

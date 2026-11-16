@@ -40,7 +40,7 @@ The images and sounds have their own authors: see `imgs/CREDITS` and
 - `include` instead of `require`, and functions of `sdl.atm` instead of
   the methods of the Lua bindings: `sdl.copy(tex, crop, rect)` for
   `REN::copy(tex, crop, rect)`.
-- The events have their own tags: `:key.dn [name='Return']` for
+- The events have their own tags: `:key.dn [key='Return']` for
   `:sdl [type=SDL.event.KeyDown, name='Return']`.
 - Textures are pinned to their tasks, which releases them when the task
   ends.

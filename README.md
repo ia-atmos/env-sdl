@@ -57,7 +57,9 @@ of frames and scripted input, and compare traces and screenshots:
 ```
 SDL_ATM_FRAMES=n:ms         runs `n` frames of `ms` milliseconds, then quits
 SDL_ATM_KEYS=f:dn:A,...     presses (`dn`) or releases (`up`) keys at frames
+SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b    moves the mouse, or a button
 SDL_ATM_SHOT=f:x.png,...    saves the screen at frames
+SDL_ATM_MUTE=1              opens no audio device
 ```
 
 # Status

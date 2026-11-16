@@ -71,7 +71,7 @@ spawn {    ;; POINTS
 ;;;
 loop {
     ;; ENTER-TO-START
-    watching :key.dn [name='Return'] {
+    watching :key.dn [key='Return'] {
         ;;;
         ;; Spawns the blinking message, and awaits a :Return press.
         ;;;
@@ -101,7 +101,7 @@ loop {
     ;;  * awaits 'P' to toggle battle on
     spawn {
         loop {
-            await :key.dn [name='P']
+            await :key.dn [key='P']
             toggle battle(false)
             spawn {
                 pin tex = sdl.image("imgs/pause.png") --> assert
@@ -117,7 +117,7 @@ loop {
                     sdl.copy(tex, nil, r)
                 }
             }
-            await :key.dn [name='P']
+            await :key.dn [key='P']
             toggle battle(true)
         }
     }

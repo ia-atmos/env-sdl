@@ -20,7 +20,24 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- E3..E7: see the plan.
+- **E3, in course.** Done: the events of the design (`key`, the
+  mouse, `:frame [n,ms]`), `sdl.mouse()`, `SDL_ATM_MOUSE`,
+  `SDL_ATM_MUTE` (12 tests). To do, in this order: plain numbers as
+  arguments and the color in each call (`sdl.draw`, `sdl.part`,
+  `sdl.scale`, `sdl.fill`, `sdl.rect`, `sdl.line`; Rocks changes);
+  `sdl.text` with a color and an alignment, `sdl.text_size`;
+  `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
+  `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
+  `sdl.key(name)`, `sdl.clock(f)`; the door in C (waits for the
+  prefix, A0); `@file` in the test variables; screenshots as `.bmp`;
+  `doc/api.md`.
+- **Asked to the sessions of the games on 2026-11-16**, no answer
+  yet: Pingus (pixels or bytes for the screenshots; the fps cap; the
+  commit of its baseline), SNKRX (a hook to flush after `:draw`; a
+  fixed frame time; its baseline), Flare (does it await a clock;
+  scancodes or key names; BMP or PNG; the raw image format). Tux was
+  told how its requests land.
+- E4..E7: see the plan.
 - **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
   `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
   `.claude/plans/261113-sdl-tux.md`), told by the compiler session on

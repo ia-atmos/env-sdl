@@ -1,0 +1,9 @@
+at	0	0
+motion	10	20	nil
+dn	11	21	1
+up	11	21	1
+at	11	21
+dn	5	6	3
+right
+up	7	8	1
+at	7	8

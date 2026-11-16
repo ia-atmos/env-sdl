@@ -1,0 +1,9 @@
+;; A sound plays (on the dummy audio driver), and a missing one is nothing.
+;; env: SDL_ATM_FRAMES=3:16
+
+sdl.window [title="sound", width=20, height=20]
+sdl.play("../exs/rocks/snds/shot.wav")
+sdl.play("../exs/rocks/snds/shot.wav")
+sdl.play("res/none.wav")
+await :draw
+print(:ok)

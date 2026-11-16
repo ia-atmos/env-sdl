@@ -124,14 +124,14 @@ task Ship (V, shots) {
     spawn {
         par {
             loop e on :key.dn {
-                match e.name {
+                match e.key {
                     V.ctl.shot   => spawn @shots Shot(V.shot, [x=rect.x+(rect.w/2),y=rect.y+(rect.h/2)], vel.y)
                     V.ctl.move.l => set acc.x = -W/SHIP_ACC_DIV
                     V.ctl.move.r => set acc.x =  W/SHIP_ACC_DIV
                     V.ctl.move.u => set acc.y = -H/SHIP_ACC_DIV
                     V.ctl.move.d => set acc.y =  H/SHIP_ACC_DIV
                 }
-                set key = e.name
+                set key = e.key
             }
         } with {
             loop on :key.up {

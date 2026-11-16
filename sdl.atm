@@ -10,13 +10,21 @@
 ;;
 ;; The program runs inside the loop of SDL, which emits:
 ;;
-;;      :key.dn [name]      a key was pressed    (name: 'A', 'Return', ...)
-;;      :key.up [name]      a key was released
-;;      :quit               the window was closed (the program terminates)
-;;      :draw               once per frame, to redraw the screen
+;;      :quit                       the window was closed (the program
+;;                                  terminates)
+;;      :key.dn [key=]              a key was pressed ('A', 'Return', ...)
+;;      :key.up [key=]              a key was released
+;;      :mouse.motion [x=,y=]       the mouse moved
+;;      :mouse.button.dn [x=,y=,button=]    a button was pressed
+;;      :mouse.button.up [x=,y=,button=]    (1 left, 2 middle, 3 right)
+;;      :frame [n=,ms=]             once per frame, for the logic: the
+;;                                  number of the frame, from 1, and
+;;                                  the time since the last one
+;;      :draw                       once per frame, to redraw the screen
 ;;
-;; Time passes once per frame, so that `await 1s` and `loop us on :clock`
-;; work as usual.
+;; A frame is, in this order: the input, the time, `:frame`, `:draw`.
+;; The time passes once per frame, so that `await 1s` and
+;; `loop us on :clock` work as usual.
 ;;
 ;; Textures and fonts are native values: `pin` them to release them with
 ;; their block, or let them go with their last reference.
@@ -25,7 +33,13 @@
 ;;
 ;;      SDL_ATM_FRAMES=n:ms     runs `n` frames of `ms` milliseconds, then quits
 ;;      SDL_ATM_KEYS=f:dn:A,... presses (`dn`) or releases (`up`) keys at frames
+;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
+;;                              moves the mouse, presses or releases the
+;;                              button `b` at a position, at frames
 ;;      SDL_ATM_SHOT=f:x.png,...  saves the screen at frames
+;;      SDL_ATM_MUTE=1          opens no audio device
+;;
+;; The frames count from 1.
 
 ```:prelude
 #include <stdio.h>
@@ -40,12 +54,26 @@
 #define SDL_EVT_QUIT    "quit"
 #define SDL_EVT_KEY_DN  "key.dn"
 #define SDL_EVT_KEY_UP  "key.up"
+#define SDL_EVT_MOTION  "mouse.motion"
+#define SDL_EVT_BUT_DN  "mouse.button.dn"
+#define SDL_EVT_BUT_UP  "mouse.button.up"
+#define SDL_EVT_FRAME   "frame"
 #define SDL_EVT_DRAW    "draw"
+
+// The fields of the events.
+#define SDL_FLD_KEY     "key"
+#define SDL_FLD_X       "x"
+#define SDL_FLD_Y       "y"
+#define SDL_FLD_BUTTON  "button"
+#define SDL_FLD_N       "n"
+#define SDL_FLD_MS      "ms"
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
 static SDL_Color     SDL_CLR = { 255, 255, 255, 255 };
 static int           SDL_SND = 0;
+static int           SDL_MX  = 0;       // the last position of the mouse
+static int           SDL_MY  = 0;
 
 static const char* SDL_KIND_TEX = "sdl.texture";
 static const char* SDL_KIND_FNT = "sdl.font";
@@ -191,25 +219,56 @@ static void sdl_play (AVal path) {
 // DRIVER
 ///////////////////////////////////////////////////////////////////////////////
 
-// Emits `:tag [name=name]`, or the tag alone.
-static AStatus sdl_emit (const char* tag, const char* name) {
+// Emits the tag alone, or a table with the tag and up to three fields:
+// a string `ks=vs` and the numbers `k1=v1`, `k2=v2`, `k3=v3`. A field
+// with a NULL name is not set.
+static AStatus sdl_emit_n (const char* tag, const char* ks, const char* vs,
+    const char* k1, int v1, const char* k2, int v2, const char* k3, int v3)
+{
     AVal t = a_strz(tag);
-    AVal evt = t;
-    if (name != NULL) {
-        evt = a_tab();
-        a_tag(evt, t);
-        AVal k = a_strz("name");
-        AVal v = a_strz(name);
+    if (ks==NULL && k1==NULL) {
+        AStatus st = atm_emit(t);
+        a_dec(t);
+        return st;
+    }
+    AVal evt = a_tab();
+    a_tag(evt, t);
+    if (ks != NULL) {
+        AVal k = a_strz(ks);
+        AVal v = a_strz(vs);
         a_setindex(evt, k, v);
         a_dec(k);
         a_dec(v);
     }
-    AStatus st = atm_emit(evt);
-    if (name != NULL) {
-        a_dec(evt);
+    const char* ks_[3] = { k1, k2, k3 };
+    int         vs_[3] = { v1, v2, v3 };
+    for (int i=0; i<3; i++) {
+        if (ks_[i] != NULL) {
+            AVal k = a_strz(ks_[i]);
+            a_setindex(evt, k, a_int(vs_[i]));
+            a_dec(k);
+        }
     }
+    AStatus st = atm_emit(evt);
+    a_dec(evt);
     a_dec(t);
     return st;
+}
+
+static AStatus sdl_emit (const char* tag) {
+    return sdl_emit_n(tag, NULL, NULL, NULL, 0, NULL, 0, NULL, 0);
+}
+
+static AStatus sdl_emit_key (const char* tag, const char* key) {
+    return sdl_emit_n(tag, SDL_FLD_KEY, key, NULL, 0, NULL, 0, NULL, 0);
+}
+
+// A motion (`but` is 0) or a button of the mouse, at a position.
+static AStatus sdl_emit_mouse (const char* tag, int x, int y, int but) {
+    SDL_MX = x;
+    SDL_MY = y;
+    return sdl_emit_n(tag, NULL, NULL, SDL_FLD_X, x, SDL_FLD_Y, y,
+        (but == 0) ? NULL : SDL_FLD_BUTTON, but);
 }
 
 // Test script: the entries `frame:...` of a variable that are due.
@@ -235,21 +294,31 @@ static AStatus sdl_script (const char* var, int frame) {
                 sfc->pixels, sfc->pitch);
             IMG_SavePNG(sfc, arg);
             SDL_FreeSurface(sfc);
+        } else if (!strcmp(var, "SDL_ATM_MOUSE")) {
+            int x=0, y=0, but=1;
+            if (sscanf(arg, "mv:%d:%d", &x, &y) == 2) {
+                st = sdl_emit_mouse(SDL_EVT_MOTION, x, y, 0);
+            } else if (sscanf(arg, "dn:%d:%d:%d", &x, &y, &but) >= 2) {
+                st = sdl_emit_mouse(SDL_EVT_BUT_DN, x, y, but);
+            } else if (sscanf(arg, "up:%d:%d:%d", &x, &y, &but) >= 2) {
+                st = sdl_emit_mouse(SDL_EVT_BUT_UP, x, y, but);
+            }
         } else if (!strncmp(arg, "dn:", 3)) {
-            st = sdl_emit(SDL_EVT_KEY_DN, arg+3);
+            st = sdl_emit_key(SDL_EVT_KEY_DN, arg+3);
         } else if (!strncmp(arg, "up:", 3)) {
-            st = sdl_emit(SDL_EVT_KEY_UP, arg+3);
+            st = sdl_emit_key(SDL_EVT_KEY_UP, arg+3);
         }
     }
     return st;
 }
 
 int main (int argc, char** argv) {
-    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) != 0) {
+    int mute = (getenv("SDL_ATM_MUTE") != NULL);
+    if (mute || SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)!=0) {
         SDL_Init(SDL_INIT_VIDEO);
     }
     TTF_Init();
-    SDL_SND = (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == 0);
+    SDL_SND = !mute && (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == 0);
 
     // test mode: a fixed number of frames with a fixed duration
     int frames = -1;
@@ -267,16 +336,25 @@ int main (int argc, char** argv) {
         SDL_Event e;
         while (st==A_OK && SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                st = sdl_emit(SDL_EVT_QUIT, NULL);
+                st = sdl_emit(SDL_EVT_QUIT);
                 quit = 1;
             } else if (e.type==SDL_KEYDOWN && !e.key.repeat) {
-                st = sdl_emit(SDL_EVT_KEY_DN, SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit_key(SDL_EVT_KEY_DN, SDL_GetKeyName(e.key.keysym.sym));
             } else if (e.type == SDL_KEYUP) {
-                st = sdl_emit(SDL_EVT_KEY_UP, SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit_key(SDL_EVT_KEY_UP, SDL_GetKeyName(e.key.keysym.sym));
+            } else if (e.type == SDL_MOUSEMOTION) {
+                st = sdl_emit_mouse(SDL_EVT_MOTION, e.motion.x, e.motion.y, 0);
+            } else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                st = sdl_emit_mouse(SDL_EVT_BUT_DN, e.button.x, e.button.y, e.button.button);
+            } else if (e.type == SDL_MOUSEBUTTONUP) {
+                st = sdl_emit_mouse(SDL_EVT_BUT_UP, e.button.x, e.button.y, e.button.button);
             }
         }
         if (st == A_OK) {
             st = sdl_script("SDL_ATM_KEYS", frame);
+        }
+        if (st == A_OK) {
+            st = sdl_script("SDL_ATM_MOUSE", frame);
         }
 
         // time
@@ -287,11 +365,17 @@ int main (int argc, char** argv) {
             st = atm_emit(a_int((int64_t)ms * 1000));
         }
 
+        // logic
+        if (st == A_OK) {
+            st = sdl_emit_n(SDL_EVT_FRAME, NULL, NULL,
+                SDL_FLD_N, frame, SDL_FLD_MS, ms, NULL, 0);
+        }
+
         // screen
         if (st==A_OK && SDL_REN!=NULL) {
             SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255);
             SDL_RenderClear(SDL_REN);
-            st = sdl_emit(SDL_EVT_DRAW, NULL);
+            st = sdl_emit(SDL_EVT_DRAW);
             sdl_script("SDL_ATM_SHOT", frame);
             SDL_RenderPresent(SDL_REN);
         }
@@ -368,6 +452,11 @@ pin sdl = [
     ;; sdl.play(path): plays a sound file
     play = func (path) {
         `sdl_play($path);`
+    },
+
+    ;; sdl.mouse(): the last position of the mouse
+    mouse = func () {
+        return `:number SDL_MX`, `:number SDL_MY`
     },
 
     ;; sdl.pct_to_pos(x, y): percentages of the window as a position

@@ -1,0 +1,8 @@
+;; With SDL_ATM_MUTE, no audio device is opened, and to play is nothing.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_MUTE=1
+
+sdl.window [title="mute", width=20, height=20]
+sdl.play("../exs/rocks/snds/shot.wav")
+sdl.play("res/none.wav")
+await :draw
+print(:ok)
