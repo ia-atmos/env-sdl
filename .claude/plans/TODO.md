@@ -52,7 +52,7 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
-- **E3 is done** (2026-11-16): `sdl.atm` grown to the design, 28 tests
+- **E3 is done** (2026-11-16): `sdl.atm` grown to the design, 23 tests
   (also with `ATMOS_ASAN=1`), `doc/api.md`. What differs from the
   design is in `doc/design.md`, 13.
 - **Decided by the author on 2026-11-16**: the design of
