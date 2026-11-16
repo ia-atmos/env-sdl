@@ -33,6 +33,13 @@ func rect_vs_rect (r1, r2) {
 
 pin FNT = sdl.font("tiny.ttf", H//15) --> assert
 
+pin SND = [
+    explosion = sdl.sound("snds/explosion.wav") --> assert,
+    meteor    = sdl.sound("snds/meteor.wav")    --> assert,
+    shot      = sdl.sound("snds/shot.wav")      --> assert,
+    start     = sdl.sound("snds/start.wav")     --> assert,
+]
+
 ;; a white text centered at a position
 func write (s, pt) {
     val _, h = sdl.text_size(FNT, s)
@@ -104,7 +111,7 @@ loop {
     }
 
     ;; Plays the restart sound.
-    sdl.play "snds/start.wav"
+    sdl.play(SND.start)
 
     ;; spawns the actual battle
     pin battle = spawn Battle()

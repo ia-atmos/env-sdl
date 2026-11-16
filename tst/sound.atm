@@ -1,9 +1,21 @@
-;; A sound plays (on the dummy audio driver), and a missing one is nothing.
+;; Sounds (on the dummy audio driver): load, play with a volume, a
+;; missing file; music, the same music, another, stop; the volumes.
 ;; env: SDL_ATM_FRAMES=3:16
 
 sdl.window [title="sound", width=20, height=20]
-sdl.play("../exs/rocks/snds/shot.wav")
-sdl.play("../exs/rocks/snds/shot.wav")
-sdl.play("res/none.wav")
+
+pin shot = sdl.sound("../exs/rocks/snds/shot.wav")
+print(type(shot))
+print(sdl.sound("res/none.wav"))
+print(sdl.play(shot) >= 0, sdl.play(shot, 0.5) >= 0)
+print(sdl.play(nil))
+sdl.volume(0.5, 0.5)
+print(sdl.music("../exs/rocks/snds/start.wav"))
+print(sdl.music("../exs/rocks/snds/start.wav"))
+print(sdl.music("../exs/rocks/snds/bonus.wav", 1))
+print(sdl.music("res/none.ogg"))
+sdl.music_stop(100)
+sdl.music_stop()
+print(sdl.music("../exs/rocks/snds/start.wav"))
 await :draw
 print(:ok)

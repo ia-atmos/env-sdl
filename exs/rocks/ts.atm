@@ -70,7 +70,7 @@ task Meteor () {
             await Move_T(rect, [x=vx,y=vy])
         } with {
             await :collided
-            sdl.play "snds/meteor.wav"
+            sdl.play(SND.meteor)
         }
     } with {
         loop on :draw {
@@ -87,7 +87,7 @@ task Meteor () {
 }
 
 task Shot (V, pos, vy) {
-    sdl.play "snds/shot.wav"
+    sdl.play(SND.shot)
     set pub = [
         tag  = V.tag,
         rect = [ x=pos.x+((V.x*SHOT_DIM.w)/2), y=(pos.y-(SHOT_DIM.h/2)), w=SHOT_DIM.w, h=SHOT_DIM.h ],

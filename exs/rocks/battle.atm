@@ -114,7 +114,7 @@ task Battle () {
         }
     }
 
-    sdl.play "snds/explosion.wav"
+    sdl.play(SND.explosion)
 
     ;;;
     ;; Returns the winner index to the main game loop:

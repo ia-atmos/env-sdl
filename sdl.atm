@@ -76,12 +76,16 @@
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
-static int           SDL_SND = 0;
+static int           SDL_SND = 0;       // the audio device is open
+static double        SDL_SND_VOL = 1.0; // the volume of the sounds
+static Mix_Music*    SDL_MUS = NULL;    // the music, and its file
+static char*         SDL_MUS_PATH = NULL;
 static int           SDL_MX  = 0;       // the last position of the mouse
 static int           SDL_MY  = 0;
 
 static const char* SDL_KIND_IMG = "sdl.image";
 static const char* SDL_KIND_FNT = "sdl.font";
+static const char* SDL_KIND_SND = "sdl.sound";
 
 // An image: its pixels in a surface, and a texture made from it at its
 // first draw.
@@ -100,6 +104,19 @@ static void sdl_img_fin (void* p) {
 }
 
 static void sdl_fnt_fin (void* p) { TTF_CloseFont(p); }
+
+// A sound: its chunk, or NULL with no audio device.
+typedef struct {
+    Mix_Chunk* chk;
+} SDL_Sound;
+
+static void sdl_snd_fin (void* p) {
+    SDL_Sound* snd = p;
+    if (snd->chk != NULL) {
+        Mix_FreeChunk(snd->chk);
+    }
+    free(snd);
+}
 
 // A number as an int (truncated), or `def`.
 static int sdl_int (AVal v, int def) {
@@ -276,29 +293,96 @@ static void sdl_text (AVal fnt, AVal txt, int x, int y, AVal rgba, int align) {
     SDL_FreeSurface(sfc);
 }
 
-// Plays a sound file. The sounds are loaded once and kept.
-static void sdl_play (AVal path) {
-    static struct { char* path; Mix_Chunk* snd; } SNDS[64];
-    static int N = 0;
-    if (!SDL_SND || path.type!=A_STR) {
+// A sound from a file, or nil. With no audio device (SDL_ATM_MUTE),
+// a sound has no chunk, and plays nothing, if its file exists.
+static AVal sdl_sound (AVal path) {
+    if (path.type != A_STR) {
+        return a_nil();
+    }
+    Mix_Chunk* chk = NULL;
+    if (SDL_SND) {
+        chk = Mix_LoadWAV(A_STR_OF(path)->s);
+        if (chk == NULL) {
+            return a_nil();
+        }
+    } else {
+        SDL_RWops* f = SDL_RWFromFile(A_STR_OF(path)->s, "rb");
+        if (f == NULL) {
+            return a_nil();
+        }
+        SDL_RWclose(f);
+    }
+    SDL_Sound* snd = malloc(sizeof(SDL_Sound));
+    snd->chk = chk;
+    return a_nat(snd, sdl_snd_fin, SDL_KIND_SND);
+}
+
+// Plays a sound once, with a volume (0 to 1) times the volume of the
+// sounds. Returns its channel, or -1.
+static int sdl_play (AVal v, double vol) {
+    SDL_Sound* snd = a_nat_is(v,SDL_KIND_SND) ? a_nat_ptr(v) : NULL;
+    if (snd==NULL || snd->chk==NULL) {
+        return -1;
+    }
+    int ch = Mix_PlayChannel(-1, snd->chk, 0);
+    if (ch >= 0) {
+        Mix_Volume(ch, (int)(vol * SDL_SND_VOL * MIX_MAX_VOLUME));
+    }
+    return ch;
+}
+
+// Stops the music, at once (`fade` is 0) or fading out in `fade` ms.
+static void sdl_music_stop (int fade) {
+    if (SDL_MUS == NULL) {
         return;
     }
-    Mix_Chunk* snd = NULL;
-    for (int i=0; i<N; i++) {
-        if (!strcmp(SNDS[i].path, A_STR_OF(path)->s)) {
-            snd = SNDS[i].snd;
-        }
+    if (fade > 0) {
+        Mix_FadeOutMusic(fade);     // freed by the next music, or at the end
+    } else {
+        Mix_HaltMusic();
+        Mix_FreeMusic(SDL_MUS);
+        SDL_MUS = NULL;
     }
-    if (snd==NULL && N<64) {
-        snd = Mix_LoadWAV(A_STR_OF(path)->s);
-        if (snd != NULL) {
-            SNDS[N].path = strdup(A_STR_OF(path)->s);
-            SNDS[N].snd  = snd;
-            N++;
-        }
+    free(SDL_MUS_PATH);
+    SDL_MUS_PATH = NULL;
+}
+
+// Plays a music, `loops` times (-1 forever), in place of the current
+// one. The same music that already plays goes on. Returns whether the
+// file was loaded (always true with no audio device).
+static int sdl_music (AVal path, int loops) {
+    if (path.type != A_STR) {
+        return 0;
     }
-    if (snd != NULL) {
-        Mix_PlayChannel(-1, snd, 0);
+    if (!SDL_SND) {
+        return 1;
+    }
+    const char* p = A_STR_OF(path)->s;
+    if (SDL_MUS_PATH!=NULL && !strcmp(SDL_MUS_PATH,p) && Mix_PlayingMusic()) {
+        return 1;
+    }
+    if (SDL_MUS != NULL) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(SDL_MUS);
+        SDL_MUS = NULL;
+    }
+    free(SDL_MUS_PATH);
+    SDL_MUS_PATH = NULL;
+    SDL_MUS = Mix_LoadMUS(p);
+    if (SDL_MUS == NULL) {
+        return 0;
+    }
+    SDL_MUS_PATH = strdup(p);
+    Mix_PlayMusic(SDL_MUS, loops);
+    return 1;
+}
+
+// The volumes of the sounds and of the music, from 0 to 1.
+static void sdl_volume (double snd, double mus) {
+    SDL_SND_VOL = snd;
+    if (SDL_SND) {
+        Mix_Volume(-1, (int)(snd * MIX_MAX_VOLUME));
+        Mix_VolumeMusic((int)(mus * MIX_MAX_VOLUME));
     }
 }
 
@@ -444,6 +528,9 @@ int main (int argc, char** argv) {
     }
     TTF_Init();
     SDL_SND = !mute && (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == 0);
+    if (SDL_SND) {
+        Mix_AllocateChannels(64);
+    }
 
     // test mode: a fixed number of frames with a fixed duration
     int frames = -1;
@@ -523,6 +610,11 @@ int main (int argc, char** argv) {
         a_error_dump();
     }
     atm_quit();
+    if (SDL_MUS != NULL) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(SDL_MUS);
+    }
+    free(SDL_MUS_PATH);
     if (SDL_SND) {
         Mix_CloseAudio();
     }
@@ -603,9 +695,33 @@ pin sdl = [
         return `:number sdl_text_dim($fnt, $s, 1)`, `:number sdl_text_dim($fnt, $s, 0)`
     },
 
-    ;; sdl.play(path): plays a sound file
-    play = func (path) {
-        `sdl_play($path);`
+    ;; sdl.sound(path): a sound (wav, ogg, ...), or nil
+    sound = func (path) {
+        `:value sdl_sound($path)`
+    },
+
+    ;; sdl.play(snd [,vol]): plays a sound once, with a volume from 0 to
+    ;; 1 (default 1); the channel, or -1
+    play = func (snd, vol) {
+        `:number sdl_play($snd, a_isnum($vol) ? a_dbl($vol) : 1.0)`
+    },
+
+    ;; sdl.music(path [,loops]): plays a music `loops` times (default -1,
+    ;; forever), in place of the current one; the same music goes on;
+    ;; whether the file was loaded
+    music = func (path, loops) {
+        `:boolean sdl_music($path, sdl_int($loops,-1))`
+    },
+
+    ;; sdl.music_stop([fade]): stops the music, fading out in `fade`
+    ;; milliseconds (default 0, at once)
+    music_stop = func (fade) {
+        `sdl_music_stop(sdl_int($fade,0));`
+    },
+
+    ;; sdl.volume(sounds, music): the volumes, from 0 to 1
+    volume = func (snd, mus) {
+        `sdl_volume(a_isnum($snd) ? a_dbl($snd) : 1.0, a_isnum($mus) ? a_dbl($mus) : 1.0);`
     },
 
     ;; sdl.mouse(): the last position of the mouse

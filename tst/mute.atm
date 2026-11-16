@@ -1,8 +1,15 @@
-;; With SDL_ATM_MUTE, no audio device is opened, and to play is nothing.
+;; With SDL_ATM_MUTE, no audio device is opened: a sound whose file
+;; exists is a value that plays nothing, and a music is not loaded.
 ;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_MUTE=1
 
 sdl.window [title="mute", width=20, height=20]
-sdl.play("../exs/rocks/snds/shot.wav")
-sdl.play("res/none.wav")
+
+pin shot = sdl.sound("../exs/rocks/snds/shot.wav")
+print(type(shot))
+print(sdl.sound("res/none.wav"))
+print(sdl.play(shot))
+print(sdl.music("../exs/rocks/snds/start.wav"))
+sdl.music_stop()
+sdl.volume(0, 0)
 await :draw
 print(:ok)
