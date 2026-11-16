@@ -19,8 +19,9 @@ Asked one at a time, each with the recommended option.
   blend modes at the draw (Flare, over the door).
 - **`inventory/pingus.md` is out of date** in `res_desc`, `LANG`, and
   `Sprite` (Pingus changed `engine.atm` in its migration to `pin`).
-- **Asked to SNKRX** (2026-11-16): whether its traces need `:frame`
-  before the clock (today: input, clock, `:frame`, `:draw`).
+- **SNKRX may ask for a step event** (`:step [us]`, the scaled time
+  of the frame, once per frame), if the author decides its finding 8
+  (physics stepped once per frame). Not to build before that.
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
   `doc/requests/answers.md`, with what changes in the design
   (`:frame` in microseconds, the scancode in the key events, a raw

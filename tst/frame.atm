@@ -1,4 +1,4 @@
-;; A frame: the input, the time, `:frame` with its number and its
+;; A frame: the input, `:frame` with its number and its time, the
 ;; time, and then `:draw`.
 ;; env: SDL_ATM_FRAMES=3:20 SDL_ATM_KEYS=2:dn:A
 

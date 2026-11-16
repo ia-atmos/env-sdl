@@ -252,6 +252,10 @@ sections above where the answers of the games
   1 s (SNKRX).
 - `sdl.clock(f)` carries the remainder to the next frame; `:frame`
   keeps the real time.
+- The order of a frame is input, `:frame`, the time, the passes of
+  drawing: SNKRX sets the factor of the clock during `:frame`, for the
+  time of the same frame. No time comes between `:frame` and `:draw`
+  that Flare awaits (it awaits no clock).
 - `sdl.window [passes=[:draw, :overlay]]`: the second pass of SNKRX.
 - `sdl_on_flush(f)`: `f(render)` after the passes, before the
   screenshot; `render` is 0 in a frame of the test mode with no
@@ -277,5 +281,4 @@ sections above where the answers of the games
 
 To verify with the sessions of the games, each with its own tests:
 the software path against the screenshots of Flare; the texture path
-against those of Pingus; the time against the traces of Flare; the
-order of the time and `:frame` against the traces of SNKRX (asked).
+against those of Pingus; the time against the traces of Flare.

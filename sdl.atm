@@ -26,7 +26,7 @@
 ;;                                  microseconds
 ;;      :draw                       once per frame, to redraw the screen
 ;;
-;; A frame is, in this order: the input, the time, `:frame`, the passes
+;; A frame is, in this order: the input, `:frame`, the time, the passes
 ;; of drawing (`:draw`), the function of flush, the screenshot.
 ;; The time passes once per frame, so that `await 1s` and
 ;; `loop us on :clock` work as usual.
@@ -891,6 +891,11 @@ int main (int argc, char** argv) {
             us = (int64_t)((now-prv)*1000000/freq);
         }
         prv = now;
+        // logic
+        if (st == A_OK) {
+            st = sdl_emit_frame(frame, us);
+        }
+
         if (st==A_OK && us>0) {
             // the clock of Atmos goes `SDL_CLOCK` times as fast, and
             // carries what is less than a microsecond to the next frame
@@ -901,11 +906,6 @@ int main (int argc, char** argv) {
             if (n > 0) {
                 st = atm_emit(a_int(n));
             }
-        }
-
-        // logic
-        if (st == A_OK) {
-            st = sdl_emit_frame(frame, us);
         }
 
         // screen

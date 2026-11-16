@@ -73,9 +73,10 @@ The program runs inside the loop of SDL. Each frame is, in this order:
 
 1. the input: the events of SDL, then the scripted input of the test
    mode;
-2. the time: the clock of Atmos passes once (`await 1s`,
-   `loop us on :clock`), scaled by [`sdl.clock`](#input-and-time);
-3. `:frame`, for the logic that runs once per frame;
+2. `:frame`, for the logic that runs once per frame;
+3. the time: the clock of Atmos passes once (`await 1s`,
+   `loop us on :clock`), scaled by [`sdl.clock`](#input-and-time): a
+   factor set during `:frame` applies to the time of the same frame;
 4. with a window: the clear (black), the passes of drawing (`:draw`),
    the [function of flush](#the-door-in-c), the screenshot, the
    present;
