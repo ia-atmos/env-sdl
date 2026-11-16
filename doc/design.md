@@ -157,22 +157,20 @@ sdl.volume(sounds, music)               ;; 0..1 each
 Names of the prelude, with a prefix of the environment:
 
 ```
-SDL_Window*   sdl_atm_win  (void);
-SDL_Renderer* sdl_atm_ren  (void);
-SDL_Surface*  sdl_atm_scr  (void);      // the screen, in the software path
-void          sdl_atm_dim  (int* w, int* h);   // the logical size
-SDL_Surface*  sdl_atm_sfc  (AVal img);  // NULL if not an image
-SDL_Texture*  sdl_atm_tex  (AVal img);  // made at the first use
-AVal          sdl_atm_img  (SDL_Surface* sfc); // an image from a surface
-int           sdl_atm_frame   (void);
-int           sdl_atm_testing (void);
+SDL_Window*   sdl_win  (void);
+SDL_Renderer* sdl_ren  (void);
+SDL_Surface*  sdl_scr  (void);      // the screen, in the software path
+void          sdl_dim  (int* w, int* h);   // the logical size
+SDL_Surface*  sdl_sfc  (AVal img);  // NULL if not an image
+SDL_Texture*  sdl_tex  (AVal img);  // made at the first use
+AVal          sdl_img  (SDL_Surface* sfc); // an image from a surface
+int           sdl_frame   (void);
+int           sdl_testing (void);
 ```
 
 - With these, the ground map of Pingus, the tiles of Flare and of
   Tux, and the whole drawing of SNKRX are C of the game.
-- The prelude of today uses the prefixes `sdl_` and `SDL_`, which are
-  of the library itself. Proposal: `sdl_atm_` and `SDL_ATM_` for
-  every name of the prelude.
+- The names keep the prefix `sdl_` (decided by the author).
 
 ## 9. The test mode
 
@@ -231,8 +229,9 @@ by pixel.
    which stays as the compiler of the examples and of the tests of
    this repository.
 
-Open: the prefix of the names of the prelude (8). He answered
-`atm_sdl`, but `atm_` is reserved by the runtime; asked back.
+6. The names of the prelude keep the prefix `sdl_` (8).
+7. Rocks lives in this repository, as `exs/rocks/`; `lib/sdl.atm`
+   and `exs/rocks/` left the compiler.
 
 Added after the migration to the new rules of `pin`: a function of
 the environment returns plain numbers (`val x, y = sdl.mouse()`), and

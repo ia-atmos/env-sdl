@@ -6,17 +6,7 @@ Everything that is pending in `env-sdl`. Plan: `261113-env-sdl.md`.
 
 Asked one at a time, each with the recommended option.
 
-0. **The prefix of the C names of the prelude.** He answered
-   `atm_sdl` (2026-11-16), but the manual reserves `atm_` for the
-   runtime ("A `:prelude` must not declare names with these
-   prefixes"). Asked back: `atm_sdl_` as an exception that the
-   compiler session accepts, or `atmsdl_`. Recommended: `atmsdl_`,
-   unless the compiler session reserves `atm_sdl_` for this
-   environment. Until answered, the prelude keeps `sdl_`.
-4. **`lib/sdl.atm` leaves the compiler** (asked on 2026-11-16; he
-   did not understand the question; explained again), when this
-   repository has it and its tests; `exs/rocks/` needs a home.
-   Recommended: yes, Rocks as an example here.
+(none: everything asked was answered on 2026-11-16)
 
 ## B. Work known and not done
 
@@ -28,8 +18,7 @@ Asked one at a time, each with the recommended option.
   `sdl.text` with a color and an alignment, `sdl.text_size`;
   `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
   `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
-  `sdl.key(name)`, `sdl.clock(f)`; the door in C (waits for the
-  prefix, A0); `@file` in the test variables;
+  `sdl.key(name)`, `sdl.clock(f)`; the door in C; `@file` in the test variables;
   `doc/api.md`.
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):
   `doc/requests/answers.md`, with what changes in the design
@@ -70,6 +59,11 @@ Asked one at a time, each with the recommended option.
   vocabulary of events of `pico.atm`; a game gets the environment as
   a checkout at a fixed commit and uses `include`, with the plain
   compiler: **it does not need `atmos-sdl`**.
+- **Also decided on 2026-11-16**: the C names of the prelude keep
+  the prefix `sdl_` ("sdl_ só está bom"); Rocks lives here and not in
+  the compiler ("O jogo não deveria estar em lang"). Told to the
+  compiler session, which removed `lib/sdl.atm` and `exs/rocks/` from
+  `ia-atmos/lang`.
 - **`atmos-sdl` is kept in this repository** (build, tests, Rocks,
   readme), as the wish relayed on 2026-11-14 for every environment.
   Read his "does not need atmos-sdl" as about the games. Told to
