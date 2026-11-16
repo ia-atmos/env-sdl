@@ -1,0 +1,15 @@
+;; An image in the format of its file (`raw`) or converted to ARGB8888,
+;; blitted with alpha in the software path.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/raw-2.png
+
+sdl.window [title="raw", width=4, height=2, software=true]
+
+pin cvt = sdl.image("res/alpha.png")
+pin raw = sdl.image("res/alpha.png", true)
+print(sdl.size(cvt), sdl.size(raw))
+
+loop on :draw {
+    sdl.fill(0x2040A0FF, 0, 0, 4, 2)
+    sdl.draw(cvt, 0, 0)
+    sdl.draw(raw, 0, 1)
+}

@@ -20,8 +20,9 @@ Asked one at a time, each with the recommended option.
   `sdl.write`, `sdl.pct_to_pos`, `sdl.rect_vs_rect` removed (the last
   two are of Rocks now). Also: `sdl.sound` (a value),
   `sdl.play` with a volume, `sdl.music`, `sdl.music_stop`,
-  `sdl.volume`; Rocks loads its sounds once. To do, in this order:
-  `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
+  `sdl.volume`; Rocks loads its sounds once. Also: `sdl.window` with
+  `logical`, `fps`, `fixed`, `software` (a screen surface, blits,
+  `sdl.image(path, raw)`). To do, in this order: `sdl.display`;
   `sdl.key(name)`, `sdl.clock(f)`; the door in C; `@file` in the test variables;
   `doc/api.md`.
 - **Pingus, SNKRX, and Flare answered** (2026-11-16):

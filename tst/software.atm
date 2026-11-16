@@ -1,0 +1,22 @@
+;; The software path: a screen surface of the logical size, with
+;; images, a part scaled, fills with and without alpha, an outline,
+;; lines, and a text. The screenshot is the surface.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/software-2.png
+
+sdl.window [title="software", width=64, height=32, logical=[32,16], software=true]
+
+pin img = sdl.image("res/quad.png")
+pin fnt = sdl.font("res/tiny.ttf", 8)
+
+loop on :draw {
+    sdl.fill(0x404040FF, 0, 0, 32, 16)
+    sdl.draw(img, 0, 0)
+    sdl.part(img, 4,0,4,2, 8,0)
+    sdl.scale(img, 0,2,8,2, 0,8,16,4)
+    sdl.part(img, 0,0,4,2, 12,0, 128)
+    sdl.fill(0xFFFFFF80, 16, 0, 4, 4)
+    sdl.rect(0xFF0000FF, 20, 0, 5, 4)
+    sdl.line(0x00FF00FF, 26, 0, 31, 5)
+    sdl.line(0x0000FF80, 16, 6, 31, 6)
+    sdl.text(fnt, "ab", 16, 7, 0xFFFF00FF)
+}

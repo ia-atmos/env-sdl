@@ -77,6 +77,8 @@
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
+static SDL_Surface*  SDL_SCR = NULL;    // the screen, in the software path
+static SDL_Texture*  SDL_SCR_TEX = NULL;
 static int           SDL_LW  = 0;       // the logical size, or 0
 static int           SDL_LH  = 0;
 static int           SDL_FPS = 60;      // the cap of frames per second
@@ -93,10 +95,13 @@ static const char* SDL_KIND_FNT = "sdl.font";
 static const char* SDL_KIND_SND = "sdl.sound";
 
 // An image: its pixels in a surface, and a texture made from it at its
-// first draw.
+// first draw. The surface has the format of the file; in the software
+// path, it is converted to ARGB8888 at its first draw, unless `raw`.
 typedef struct {
     SDL_Surface* sfc;
     SDL_Texture* tex;
+    int          raw;   // keeps the format of the file
+    int          cvt;   // converted to ARGB8888 (software path)
 } SDL_Image;
 
 static void sdl_img_fin (void* p) {
@@ -184,12 +189,24 @@ static void sdl_window (AVal t) {
         fprintf(stderr, "sdl : %s\n", SDL_GetError());
         exit(1);
     }
-    if (SDL_LW>0 && SDL_LH>0) {
+    k = a_strz("software");
+    int soft = a_truthy(sdl_get(t, k));
+    a_dec(k);
+    if (soft) {
+        // the screen is a surface of the logical size, copied to a
+        // texture at each frame, and stretched to the window
+        int sw = (SDL_LW>0 && SDL_LH>0) ? SDL_LW : w;
+        int sh = (SDL_LW>0 && SDL_LH>0) ? SDL_LH : h;
+        SDL_SCR = SDL_CreateRGBSurfaceWithFormat(0, sw, sh, 32, SDL_PIXELFORMAT_ARGB8888);
+        SDL_SCR_TEX = SDL_CreateTexture(SDL_REN, SDL_PIXELFORMAT_ARGB8888,
+            SDL_TEXTUREACCESS_STREAMING, sw, sh);
+    } else if (SDL_LW>0 && SDL_LH>0) {
         SDL_RenderSetLogicalSize(SDL_REN, SDL_LW, SDL_LH);
     }
 }
 
-static AVal sdl_image (AVal path) {
+// An image from a file, or nil. `raw`: see SDL_Image.
+static AVal sdl_image (AVal path, int raw) {
     SDL_Surface* sfc = (path.type == A_STR) ? IMG_Load(A_STR_OF(path)->s) : NULL;
     if (sfc == NULL) {
         return a_nil();
@@ -197,6 +214,8 @@ static AVal sdl_image (AVal path) {
     SDL_Image* img = malloc(sizeof(SDL_Image));
     img->sfc = sfc;
     img->tex = NULL;
+    img->raw = raw;
+    img->cvt = 0;
     return a_nat(img, sdl_img_fin, SDL_KIND_IMG);
 }
 
@@ -232,6 +251,32 @@ static int sdl_dim (AVal v, int width) {
 
 // Draws the part `src` of an image into `dst`, with an alpha.
 static void sdl_blit (AVal v, SDL_Rect* src, SDL_Rect* dst, int alpha) {
+    if (SDL_SCR != NULL) {
+        SDL_Image* img = sdl_img(v);
+        if (img == NULL) {
+            return;
+        }
+        if (!img->raw && !img->cvt) {
+            SDL_Surface* cvt = SDL_ConvertSurfaceFormat(img->sfc, SDL_PIXELFORMAT_ARGB8888, 0);
+            if (cvt == NULL) {
+                return;
+            }
+            SDL_FreeSurface(img->sfc);
+            img->sfc = cvt;
+            img->cvt = 1;
+        }
+        SDL_SetSurfaceBlendMode(img->sfc, SDL_BLENDMODE_BLEND);
+        SDL_SetSurfaceAlphaMod(img->sfc, alpha);
+        int w = src ? src->w : img->sfc->w;
+        int h = src ? src->h : img->sfc->h;
+        if (dst->w==w && dst->h==h) {
+            SDL_BlitSurface(img->sfc, src, SDL_SCR, dst);
+        } else {
+            SDL_BlitScaled(img->sfc, src, SDL_SCR, dst);
+        }
+        SDL_SetSurfaceAlphaMod(img->sfc, 255);
+        return;
+    }
     SDL_Texture* tex = sdl_img_tex(sdl_img(v));
     if (tex == NULL) {
         return;
@@ -263,12 +308,46 @@ static void sdl_part (AVal v, int sx, int sy, int sw, int sh,
     sdl_blit(v, &s, &d, alpha);
 }
 
+// Fills a rectangle of the screen surface, blending its color.
+static void sdl_scr_fill (SDL_Color c, int x, int y, int w, int h) {
+    SDL_Rect r = { x, y, w, h };
+    if (c.a == 255) {
+        SDL_FillRect(SDL_SCR, &r, SDL_MapRGBA(SDL_SCR->format, c.r, c.g, c.b, 255));
+        return;
+    }
+    if (w<=0 || h<=0) {
+        return;
+    }
+    SDL_Surface* sfc = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+    SDL_FillRect(sfc, NULL, SDL_MapRGBA(sfc->format, c.r, c.g, c.b, c.a));
+    SDL_SetSurfaceBlendMode(sfc, SDL_BLENDMODE_BLEND);
+    SDL_BlitSurface(sfc, NULL, SDL_SCR, &r);
+    SDL_FreeSurface(sfc);
+}
+
 // Fills (`fill`) or outlines a rectangle, with a color.
 static void sdl_rect (AVal rgba, int x, int y, int w, int h, int fill) {
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    if (SDL_SCR != NULL) {
+        if (fill) {
+            sdl_scr_fill(c, x, y, w, h);
+        } else if (w>0 && h>0) {
+            sdl_scr_fill(c, x, y, w, 1);
+            if (h > 1) {
+                sdl_scr_fill(c, x, y+h-1, w, 1);
+            }
+            if (h > 2) {
+                sdl_scr_fill(c, x, y+1, 1, h-2);
+                if (w > 1) {
+                    sdl_scr_fill(c, x+w-1, y+1, 1, h-2);
+                }
+            }
+        }
+        return;
+    }
     if (SDL_REN == NULL) {
         return;
     }
-    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
     SDL_Rect r = { x, y, w, h };
     SDL_SetRenderDrawBlendMode(SDL_REN, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(SDL_REN, c.r, c.g, c.b, c.a);
@@ -280,10 +359,32 @@ static void sdl_rect (AVal rgba, int x, int y, int w, int h, int fill) {
 }
 
 static void sdl_line (AVal rgba, int x1, int y1, int x2, int y2) {
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    if (SDL_SCR != NULL) {
+        // Bresenham, a pixel at a time
+        int dx = abs(x2-x1), sx = (x1<x2) ? 1 : -1;
+        int dy = -abs(y2-y1), sy = (y1<y2) ? 1 : -1;
+        int err = dx + dy;
+        while (1) {
+            sdl_scr_fill(c, x1, y1, 1, 1);
+            if (x1==x2 && y1==y2) {
+                break;
+            }
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x1 += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y1 += sy;
+            }
+        }
+        return;
+    }
     if (SDL_REN == NULL) {
         return;
     }
-    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
     SDL_SetRenderDrawBlendMode(SDL_REN, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(SDL_REN, c.r, c.g, c.b, c.a);
     SDL_RenderDrawLine(SDL_REN, x1, y1, x2, y2);
@@ -309,10 +410,14 @@ static void sdl_text (AVal fnt, AVal txt, int x, int y, AVal rgba, int align) {
     if (sfc == NULL) {
         return;
     }
-    SDL_Texture* tex = SDL_CreateTextureFromSurface(SDL_REN, sfc);
     SDL_Rect r = { x - (align*sfc->w)/2, y, sfc->w, sfc->h };
-    SDL_RenderCopy(SDL_REN, tex, NULL, &r);
-    SDL_DestroyTexture(tex);
+    if (SDL_SCR != NULL) {
+        SDL_BlitSurface(sfc, NULL, SDL_SCR, &r);
+    } else {
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(SDL_REN, sfc);
+        SDL_RenderCopy(SDL_REN, tex, NULL, &r);
+        SDL_DestroyTexture(tex);
+    }
     SDL_FreeSurface(sfc);
 }
 
@@ -518,12 +623,19 @@ static AStatus sdl_script (const char* var, int frame) {
         }
         arg++;
         if (!strcmp(var, "SDL_ATM_SHOT")) {
-            int w, h;
-            SDL_GetRendererOutputSize(SDL_REN, &w, &h);
-            SDL_Surface* sfc = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32,
-                SDL_PIXELFORMAT_RGBA32);
-            SDL_RenderReadPixels(SDL_REN, NULL, SDL_PIXELFORMAT_RGBA32,
-                sfc->pixels, sfc->pitch);
+            // the screen surface (at the logical size), or what the
+            // renderer drew (at the size of the window)
+            SDL_Surface* sfc;
+            if (SDL_SCR != NULL) {
+                sfc = SDL_ConvertSurfaceFormat(SDL_SCR, SDL_PIXELFORMAT_RGBA32, 0);
+            } else {
+                int w, h;
+                SDL_GetRendererOutputSize(SDL_REN, &w, &h);
+                sfc = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32,
+                    SDL_PIXELFORMAT_RGBA32);
+                SDL_RenderReadPixels(SDL_REN, NULL, SDL_PIXELFORMAT_RGBA32,
+                    sfc->pixels, sfc->pitch);
+            }
             IMG_SavePNG(sfc, arg);
             SDL_FreeSurface(sfc);
         } else if (!strcmp(var, "SDL_ATM_MOUSE")) {
@@ -620,8 +732,15 @@ int main (int argc, char** argv) {
         if (st==A_OK && SDL_REN!=NULL) {
             SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255);
             SDL_RenderClear(SDL_REN);
+            if (SDL_SCR != NULL) {
+                SDL_FillRect(SDL_SCR, NULL, SDL_MapRGBA(SDL_SCR->format, 0, 0, 0, 255));
+            }
             st = sdl_emit(SDL_EVT_DRAW);
             sdl_script("SDL_ATM_SHOT", frame);
+            if (SDL_SCR != NULL) {
+                SDL_UpdateTexture(SDL_SCR_TEX, NULL, SDL_SCR->pixels, SDL_SCR->pitch);
+                SDL_RenderCopy(SDL_REN, SDL_SCR_TEX, NULL, NULL);
+            }
             SDL_RenderPresent(SDL_REN);
         }
 
@@ -652,6 +771,10 @@ int main (int argc, char** argv) {
         Mix_HaltMusic();
         Mix_FreeMusic(SDL_MUS);
     }
+    if (SDL_SCR != NULL) {
+        SDL_FreeSurface(SDL_SCR);
+        SDL_DestroyTexture(SDL_SCR_TEX);
+    }
     free(SDL_MUS_PATH);
     if (SDL_SND) {
         Mix_CloseAudio();
@@ -663,20 +786,28 @@ int main (int argc, char** argv) {
 ```
 
 pin sdl = [
-    ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=]
+    ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=,
+    ;;             software=]
     ;;  - logical: the size that the program draws in, scaled to the
     ;;    window (default: the size of the window)
     ;;  - fps: the cap of frames per second (default 60)
     ;;  - fixed: if true, the time of a frame is exactly 1/fps s, and
     ;;    not the time measured (fps frames are exactly 1 s); the test
     ;;    mode is always so
+    ;;  - software: if true, the screen is a surface of the logical size:
+    ;;    an image is drawn with SDL_BlitSurface, a fill with
+    ;;    SDL_FillRect, and the surface is copied to the window at each
+    ;;    frame; a screenshot is the surface
     window = func (t) {
         `sdl_window($t);`
     },
 
-    ;; sdl.image(path): an image, or nil
-    image = func (path) {
-        `:value sdl_image($path)`
+    ;; sdl.image(path [,raw]): an image, or nil; in the software path,
+    ;; its pixels are converted to ARGB8888 at its first draw, unless
+    ;; `raw` keeps the format of the file (a blit with alpha gives other
+    ;; pixels in each format)
+    image = func (path, raw) {
+        `:value sdl_image($path, a_truthy($raw))`
     },
 
     ;; sdl.size(img): the width and the height of an image
