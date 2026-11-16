@@ -18,7 +18,9 @@ Asked one at a time, each with the recommended option.
   and a color `0xRRGGBBAA` in each call; `sdl.text` with a color and
   an alignment, `sdl.text_size`; `sdl.copy`, `sdl.color`,
   `sdl.write`, `sdl.pct_to_pos`, `sdl.rect_vs_rect` removed (the last
-  two are of Rocks now). To do, in this order: `sdl.sound`, `sdl.play` with a volume, `sdl.music`, `sdl.volume`;
+  two are of Rocks now). Also: `sdl.sound` (a value),
+  `sdl.play` with a volume, `sdl.music`, `sdl.music_stop`,
+  `sdl.volume`; Rocks loads its sounds once. To do, in this order:
   `sdl.window` with `logical`, `fps`, `software`; `sdl.display`;
   `sdl.key(name)`, `sdl.clock(f)`; the door in C; `@file` in the test variables;
   `doc/api.md`.
