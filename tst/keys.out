@@ -1,5 +1,5 @@
-2	dn	A
-2	dn	Left
+2	dn	A	A
+2	dn	Left	Left
 2	left
-3	up	A
-5	up	Left
+3	up	A	A
+5	up	Left	Left

@@ -16,7 +16,7 @@ spawn {
 }
 spawn {
     loop e on :frame {
-        print(:frame, e.n, e.ms)
+        print(:frame, e.n, e.us)
     }
 }
 spawn {

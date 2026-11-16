@@ -11,12 +11,12 @@ spawn {
 }
 spawn {
     loop e on :key.dn {
-        print(frame, :dn, e.key)
+        print(frame, :dn, e.key, e.code)
     }
 }
 spawn {
     loop e on :key.up {
-        print(frame, :up, e.key)
+        print(frame, :up, e.key, e.code)
     }
 }
 await :key.dn [key='Left']

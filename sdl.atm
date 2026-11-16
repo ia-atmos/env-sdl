@@ -12,14 +12,18 @@
 ;;
 ;;      :quit                       the window was closed (the program
 ;;                                  terminates)
-;;      :key.dn [key=]              a key was pressed ('A', 'Return', ...)
-;;      :key.up [key=]              a key was released
+;;      :key.dn [key=,code=]        a key was pressed: the name of the key
+;;                                  ('A', 'Return', ...), and the name of
+;;                                  its scancode, the key at that place
+;;                                  of a US keyboard
+;;      :key.up [key=,code=]        a key was released
 ;;      :mouse.motion [x=,y=]       the mouse moved
 ;;      :mouse.button.dn [x=,y=,button=]    a button was pressed
 ;;      :mouse.button.up [x=,y=,button=]    (1 left, 2 middle, 3 right)
-;;      :frame [n=,ms=]             once per frame, for the logic: the
+;;      :frame [n=,us=]             once per frame, for the logic: the
 ;;                                  number of the frame, from 1, and
-;;                                  the time since the last one
+;;                                  the time since the last one, in
+;;                                  microseconds
 ;;      :draw                       once per frame, to redraw the screen
 ;;
 ;; A frame is, in this order: the input, the time, `:frame`, `:draw`.
@@ -33,6 +37,7 @@
 ;;
 ;;      SDL_ATM_FRAMES=n:ms     runs `n` frames of `ms` milliseconds, then quits
 ;;      SDL_ATM_KEYS=f:dn:A,... presses (`dn`) or releases (`up`) keys at frames
+;;                              (by the name of the key)
 ;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
 ;;                              moves the mouse, presses or releases the
 ;;                              button `b` at a position, at frames
@@ -62,11 +67,12 @@
 
 // The fields of the events.
 #define SDL_FLD_KEY     "key"
+#define SDL_FLD_CODE    "code"
 #define SDL_FLD_X       "x"
 #define SDL_FLD_Y       "y"
 #define SDL_FLD_BUTTON  "button"
 #define SDL_FLD_N       "n"
-#define SDL_FLD_MS      "ms"
+#define SDL_FLD_US      "us"
 
 static SDL_Window*   SDL_WIN = NULL;
 static SDL_Renderer* SDL_REN = NULL;
@@ -219,33 +225,39 @@ static void sdl_play (AVal path) {
 // DRIVER
 ///////////////////////////////////////////////////////////////////////////////
 
-// Emits the tag alone, or a table with the tag and up to three fields:
-// a string `ks=vs` and the numbers `k1=v1`, `k2=v2`, `k3=v3`. A field
+// The fields of an event: up to two strings and three numbers. A field
 // with a NULL name is not set.
-static AStatus sdl_emit_n (const char* tag, const char* ks, const char* vs,
-    const char* k1, int v1, const char* k2, int v2, const char* k3, int v3)
-{
+typedef struct {
+    const char* sk[2];
+    const char* sv[2];
+    const char* nk[3];
+    int64_t     nv[3];
+} SDL_Fields;
+
+// Emits the tag alone (`f` is NULL), or a table with the tag and the
+// fields.
+static AStatus sdl_emit_f (const char* tag, const SDL_Fields* f) {
     AVal t = a_strz(tag);
-    if (ks==NULL && k1==NULL) {
+    if (f == NULL) {
         AStatus st = atm_emit(t);
         a_dec(t);
         return st;
     }
     AVal evt = a_tab();
     a_tag(evt, t);
-    if (ks != NULL) {
-        AVal k = a_strz(ks);
-        AVal v = a_strz(vs);
-        a_setindex(evt, k, v);
-        a_dec(k);
-        a_dec(v);
+    for (int i=0; i<2; i++) {
+        if (f->sk[i] != NULL) {
+            AVal k = a_strz(f->sk[i]);
+            AVal v = a_strz(f->sv[i]);
+            a_setindex(evt, k, v);
+            a_dec(k);
+            a_dec(v);
+        }
     }
-    const char* ks_[3] = { k1, k2, k3 };
-    int         vs_[3] = { v1, v2, v3 };
     for (int i=0; i<3; i++) {
-        if (ks_[i] != NULL) {
-            AVal k = a_strz(ks_[i]);
-            a_setindex(evt, k, a_int(vs_[i]));
+        if (f->nk[i] != NULL) {
+            AVal k = a_strz(f->nk[i]);
+            a_setindex(evt, k, a_int(f->nv[i]));
             a_dec(k);
         }
     }
@@ -256,19 +268,51 @@ static AStatus sdl_emit_n (const char* tag, const char* ks, const char* vs,
 }
 
 static AStatus sdl_emit (const char* tag) {
-    return sdl_emit_n(tag, NULL, NULL, NULL, 0, NULL, 0, NULL, 0);
+    return sdl_emit_f(tag, NULL);
 }
 
-static AStatus sdl_emit_key (const char* tag, const char* key) {
-    return sdl_emit_n(tag, SDL_FLD_KEY, key, NULL, 0, NULL, 0, NULL, 0);
+// A key, by its keycode and its scancode.
+static AStatus sdl_emit_key (const char* tag, SDL_Keycode key, SDL_Scancode code) {
+    SDL_Fields f = {
+        { SDL_FLD_KEY, SDL_FLD_CODE },
+        { SDL_GetKeyName(key), SDL_GetScancodeName(code) },
+        { NULL, NULL, NULL }, { 0, 0, 0 }
+    };
+    return sdl_emit_f(tag, &f);
+}
+
+// A key of a script, by its name: the scancode is that of the key.
+static AStatus sdl_emit_key_name (const char* tag, const char* name) {
+    SDL_Keycode key = SDL_GetKeyFromName(name);
+    if (key == SDLK_UNKNOWN) {
+        SDL_Fields f = {
+            { SDL_FLD_KEY, NULL }, { name, NULL },
+            { NULL, NULL, NULL }, { 0, 0, 0 }
+        };
+        return sdl_emit_f(tag, &f);
+    }
+    return sdl_emit_key(tag, key, SDL_GetScancodeFromKey(key));
 }
 
 // A motion (`but` is 0) or a button of the mouse, at a position.
 static AStatus sdl_emit_mouse (const char* tag, int x, int y, int but) {
     SDL_MX = x;
     SDL_MY = y;
-    return sdl_emit_n(tag, NULL, NULL, SDL_FLD_X, x, SDL_FLD_Y, y,
-        (but == 0) ? NULL : SDL_FLD_BUTTON, but);
+    SDL_Fields f = {
+        { NULL, NULL }, { NULL, NULL },
+        { SDL_FLD_X, SDL_FLD_Y, (but == 0) ? NULL : SDL_FLD_BUTTON },
+        { x, y, but }
+    };
+    return sdl_emit_f(tag, &f);
+}
+
+// The frame: its number and its time.
+static AStatus sdl_emit_frame (int n, int64_t us) {
+    SDL_Fields f = {
+        { NULL, NULL }, { NULL, NULL },
+        { SDL_FLD_N, SDL_FLD_US, NULL }, { n, us, 0 }
+    };
+    return sdl_emit_f(SDL_EVT_FRAME, &f);
 }
 
 // Test script: the entries `frame:...` of a variable that are due.
@@ -304,9 +348,9 @@ static AStatus sdl_script (const char* var, int frame) {
                 st = sdl_emit_mouse(SDL_EVT_BUT_UP, x, y, but);
             }
         } else if (!strncmp(arg, "dn:", 3)) {
-            st = sdl_emit_key(SDL_EVT_KEY_DN, arg+3);
+            st = sdl_emit_key_name(SDL_EVT_KEY_DN, arg+3);
         } else if (!strncmp(arg, "up:", 3)) {
-            st = sdl_emit_key(SDL_EVT_KEY_UP, arg+3);
+            st = sdl_emit_key_name(SDL_EVT_KEY_UP, arg+3);
         }
     }
     return st;
@@ -330,7 +374,8 @@ int main (int argc, char** argv) {
     atm_init(argc, argv);
     AStatus st = atm_main();
 
-    Uint32 prv = SDL_GetTicks();
+    Uint64 freq = SDL_GetPerformanceFrequency();
+    Uint64 prv  = SDL_GetPerformanceCounter();
     int quit = 0;
     for (int frame=1; st==A_OK && !quit && atm_alive(); frame++) {
         SDL_Event e;
@@ -339,9 +384,9 @@ int main (int argc, char** argv) {
                 st = sdl_emit(SDL_EVT_QUIT);
                 quit = 1;
             } else if (e.type==SDL_KEYDOWN && !e.key.repeat) {
-                st = sdl_emit_key(SDL_EVT_KEY_DN, SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit_key(SDL_EVT_KEY_DN, e.key.keysym.sym, e.key.keysym.scancode);
             } else if (e.type == SDL_KEYUP) {
-                st = sdl_emit_key(SDL_EVT_KEY_UP, SDL_GetKeyName(e.key.keysym.sym));
+                st = sdl_emit_key(SDL_EVT_KEY_UP, e.key.keysym.sym, e.key.keysym.scancode);
             } else if (e.type == SDL_MOUSEMOTION) {
                 st = sdl_emit_mouse(SDL_EVT_MOTION, e.motion.x, e.motion.y, 0);
             } else if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -358,17 +403,16 @@ int main (int argc, char** argv) {
         }
 
         // time
-        Uint32 now = SDL_GetTicks();
-        int ms = fixed ? fixed : (int)(now - prv);
+        Uint64 now = SDL_GetPerformanceCounter();
+        int64_t us = fixed ? (int64_t)fixed*1000 : (int64_t)((now-prv)*1000000/freq);
         prv = now;
-        if (st==A_OK && ms>0) {
-            st = atm_emit(a_int((int64_t)ms * 1000));
+        if (st==A_OK && us>0) {
+            st = atm_emit(a_int(us));
         }
 
         // logic
         if (st == A_OK) {
-            st = sdl_emit_n(SDL_EVT_FRAME, NULL, NULL,
-                SDL_FLD_N, frame, SDL_FLD_MS, ms, NULL, 0);
+            st = sdl_emit_frame(frame, us);
         }
 
         // screen

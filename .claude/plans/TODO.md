@@ -11,7 +11,7 @@ Asked one at a time, each with the recommended option.
 ## B. Work known and not done
 
 - **E3, in course.** Done: the events of the design (`key`, the
-  mouse, `:frame [n,ms]`), `sdl.mouse()`, `SDL_ATM_MOUSE`,
+  mouse, `:frame [n,us]`, the scancode as `code`), `sdl.mouse()`, `SDL_ATM_MOUSE`,
   `SDL_ATM_MUTE` (12 tests). To do, in this order: plain numbers as
   arguments and the color in each call (`sdl.draw`, `sdl.part`,
   `sdl.scale`, `sdl.fill`, `sdl.rect`, `sdl.line`; Rocks changes);
