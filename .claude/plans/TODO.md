@@ -11,7 +11,9 @@ Asked one at a time, each with the recommended option.
 ## B. Work known and not done
 
 - **E4: Pingus over the environment**, with its session; baseline
-  `cc5fe72` of `ia-atmos/sdl-pingus`. Tell it the commit of E3.
+  `cc5fe72` of `ia-atmos/sdl-pingus`. Told on 2026-11-16, with the
+  commit `2723b34` and a map of its layer to the environment; it
+  moves. Tux and Flare were told the same commit.
 - **Not built in E3**, for when a game needs them: `sdl.draw_ex`
   (flips, rotation, tint; Tux), the loop points of a music (Tux),
   blend modes at the draw (Flare, over the door).
