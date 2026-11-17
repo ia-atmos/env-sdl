@@ -13,6 +13,10 @@ Asked one at a time, each with the recommended option.
 - **E5: SNKRX over the environment**, with its session, after its
   baseline (`2bddee7` or later) and its migration to the new rules of
   `pin`, which waits for the author. Not told to start yet.
+- **`atmos.env [step, quit, mode]`** (`lang` `81986e7`, manual
+  "Environments"): environments may now register in Atmos. Moving
+  `sdl.atm` to it is not asked yet (told by the session `envs`,
+  2026-11-17).
 - **Not built in E3**, for when a game needs them: `sdl.draw_ex`
   (flips, rotation, tint; Tux), the loop points of a music (Tux),
   blend modes at the draw (Flare, over the door).
@@ -73,6 +77,10 @@ Asked one at a time, each with the recommended option.
   only depended on `sdl.atm`), so the earlier check with `b463c23`
   used a stale `atmos-sdl`; fixed (`atmos-sdl` depends on the
   compiler too).
+- **`:frame` is kept, for every environment** (the author, 2026-11-17,
+  in the session `envs`: "Mantém frame"): `:frame` once per frame for
+  the logic, before `:draw`; `:clock` is time only. `sdl.atm` already
+  does so; pico aligns with it.
 - **The workarounds of the first migration were removed from Rocks**
   (2026-11-17), as the author approved in the compiler session ("sim
   para tudo", relayed): `val` for small tables and the points, the
