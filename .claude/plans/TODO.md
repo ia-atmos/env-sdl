@@ -54,6 +54,14 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **The rules of `pin` changed again on 2026-11-17** (compiler
+  `0ba7afc`, `98547d3`; relayed by the compiler session as asked by
+  the author): `val`/`var` may hold a fresh value again, and a `pin`
+  may be reassigned. The tests here pass with `lang` `b463c23`, with
+  no change. The rewrites of Rocks are kept; undoing them is the
+  author's call. Pingus fails one check (`screens`) with that
+  compiler, in its own code: told to Pingus and to the compiler
+  session.
 - **E4 is done** (2026-11-17): Pingus moved over `2723b34`
   (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
   identical, normal and ASAN, its 6 golden screenshots identical by
