@@ -10,14 +10,9 @@ Asked one at a time, each with the recommended option.
 
 ## B. Work known and not done
 
-- **E4: Pingus over the environment**, with its session; baseline
-  `cc5fe72` of `ia-atmos/sdl-pingus`. Told on 2026-11-16, with the
-  commit `2723b34` and a map of its layer to the environment; it
-  moves. Tux and Flare were told the same commit.
-  Pingus started on 2026-11-16 (its `main` at `9f4bc45`) and asked: a
-  scripted press moves the mouse first (done), `fps=0` is no cap
-  (done). It renames its own `:frame` of sprites, which clashes with
-  the `:frame` of the environment: other ports may meet the same.
+- **E5: SNKRX over the environment**, with its session, after its
+  baseline (`2bddee7` or later) and its migration to the new rules of
+  `pin`, which waits for the author. Not told to start yet.
 - **Not built in E3**, for when a game needs them: `sdl.draw_ex`
   (flips, rotation, tint; Tux), the loop points of a music (Tux),
   blend modes at the draw (Flare, over the door).
@@ -59,6 +54,13 @@ Asked one at a time, each with the recommended option.
 - **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
   builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
   `ATMOS_ASAN=1`), readme.
+- **E4 is done** (2026-11-17): Pingus moved over `2723b34`
+  (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
+  identical, normal and ASAN, its 6 golden screenshots identical by
+  pixels, its 159 demo traces byte-identical (its report).
+  `engine/pingus.h` went from 930 to 591 lines, the game's C only.
+  Checked here: its `tst/run.sh` (37 checks) passes against
+  `env-sdl` `9fea770` too; its demos were not rerun here.
 - **E3 is done** (2026-11-16): `sdl.atm` grown to the design, 23 tests
   (also with `ATMOS_ASAN=1`), `doc/api.md`. What differs from the
   design is in `doc/design.md`, 13.
