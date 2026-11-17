@@ -44,9 +44,6 @@ The images and sounds have their own authors: see `imgs/CREDITS` and
   `:sdl [type=SDL.event.KeyDown, name='Return']`.
 - Textures are pinned to their tasks, which releases them when the task
   ends.
-- The collision list is a pinned table, filled from the pools. The
-  original builds it with `[] ++ ships ++ ...`, which is now an escape
-  error: the tasks of a pool cannot go to an unpinned table.
 
 # Test with no screen
 
@@ -61,3 +58,6 @@ SDL_ATM_SHOT="100:/tmp/battle.png,310:/tmp/score.png" \
 It runs 320 frames of 16ms, starts a battle, shoots once from the left
 ship, and saves the screen at frames 100 and 310. The shot hits the
 other ship, so the last image shows the points as 1 and 0.
+
+The test of the repository, `tst/run.sh rocks`, runs it this way, with
+the seed 1 as its argument (see the header of `main.atm`).

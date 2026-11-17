@@ -72,9 +72,13 @@ Asked one at a time, each with the recommended option.
   `atmos-sdl` was not rebuilt when the compiler changed (the Makefile
   only depended on `sdl.atm`), so the earlier check with `b463c23`
   used a stale `atmos-sdl`; fixed (`atmos-sdl` depends on the
-  compiler too). The workarounds of the first migration in Rocks
-  (pins of small tables, the rectangles created in `pub`) are kept:
-  removing them is allowed, not required; the author's call.
+  compiler too).
+- **The workarounds of the first migration were removed from Rocks**
+  (2026-11-17), as the author approved in the compiler session ("sim
+  para tudo", relayed): `val` for small tables and the points, the
+  rectangles built in a `val` and put in `pub`, `var acc` reassigned,
+  and the collision list as `[] ++ ships ++ ...` again. Natives and
+  pools stay pinned. Tests identical, also with ASAN.
 - **E4 is done** (2026-11-17): Pingus moved over `2723b34`
   (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
   identical, normal and ASAN, its 6 golden screenshots identical by
