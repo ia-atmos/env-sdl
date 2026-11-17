@@ -64,6 +64,17 @@ Asked one at a time, each with the recommended option.
   session, which found it is the new rule at work (a closure in an
   inner `spawn` captured a parameter), fixed the line of its message
   (`a4c465a`), and gave Pingus the fix.
+- **The rules of `pin` changed a third time on 2026-11-17** (`lang`
+  `5da4b8e`, guide `.claude/plans/261117-pin-migration-2.md`): `pin
+  val`/`pin var`, parameter modifiers, no implicit give-away of a
+  pinned value. The tests here pass with it, with no change to the
+  code, also with ASAN, and the pause of Rocks runs. Found on the way:
+  `atmos-sdl` was not rebuilt when the compiler changed (the Makefile
+  only depended on `sdl.atm`), so the earlier check with `b463c23`
+  used a stale `atmos-sdl`; fixed (`atmos-sdl` depends on the
+  compiler too). The workarounds of the first migration in Rocks
+  (pins of small tables, the rectangles created in `pub`) are kept:
+  removing them is allowed, not required; the author's call.
 - **E4 is done** (2026-11-17): Pingus moved over `2723b34`
   (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
   identical, normal and ASAN, its 6 golden screenshots identical by

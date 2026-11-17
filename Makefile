@@ -21,7 +21,8 @@ LIBS  := -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 all: atmos-sdl
 
-atmos-sdl: sdl.atm
+# rebuilt when the environment or the compiler changes
+atmos-sdl: sdl.atm $(wildcard $(ATMOS)/atmos)
 	@test -x "$(ATMOS)/atmos" || \
 	    { echo "make : compiler not found : $(ATMOS)/atmos (set ATMOS=/path/to/lang)"; exit 1; }
 	$(MAKE) -C "$(abspath $(ATMOS))" env \
