@@ -61,7 +61,9 @@ Asked one at a time, each with the recommended option.
   no change. The rewrites of Rocks are kept; undoing them is the
   author's call. Pingus fails one check (`screens`) with that
   compiler, in its own code: told to Pingus and to the compiler
-  session.
+  session, which found it is the new rule at work (a closure in an
+  inner `spawn` captured a parameter), fixed the line of its message
+  (`a4c465a`), and gave Pingus the fix.
 - **E4 is done** (2026-11-17): Pingus moved over `2723b34`
   (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
   identical, normal and ASAN, its 6 golden screenshots identical by
