@@ -17,6 +17,10 @@ Asked one at a time, each with the recommended option.
   "Environments"): environments may now register in Atmos. Moving
   `sdl.atm` to it is not asked yet (told by the session `envs`,
   2026-11-17).
+- **The screenshots with text depend on the version of FreeType**
+  (`tst/text-2.png`, `tst/software-2.png`, `tst/rocks-*.png`): the
+  expected images are from SDL2_ttf 2.22 of Ubuntu 24.04. Settle when
+  another setup runs the tests (a tolerance, or a fixed setup).
 - **Not built in E3**, for when a game needs them: `sdl.draw_ex`
   (flips, rotation, tint; Tux), the loop points of a music (Tux),
   blend modes at the draw (Flare, over the door).
@@ -55,90 +59,5 @@ Asked one at a time, each with the recommended option.
 
 ## C. Reported or decided, not acknowledged
 
-- **E0 is done** (2026-11-14): `sdl.atm` from the compiler, `make`
-  builds `atmos-sdl`, `tst/run.sh` with 8 tests (also with
-  `ATMOS_ASAN=1`), readme.
-- **The rules of `pin` changed again on 2026-11-17** (compiler
-  `0ba7afc`, `98547d3`; relayed by the compiler session as asked by
-  the author): `val`/`var` may hold a fresh value again, and a `pin`
-  may be reassigned. The tests here pass with `lang` `b463c23`, with
-  no change. The rewrites of Rocks are kept; undoing them is the
-  author's call. Pingus fails one check (`screens`) with that
-  compiler, in its own code: told to Pingus and to the compiler
-  session, which found it is the new rule at work (a closure in an
-  inner `spawn` captured a parameter), fixed the line of its message
-  (`a4c465a`), and gave Pingus the fix.
-- **The rules of `pin` changed a third time on 2026-11-17** (`lang`
-  `5da4b8e`, guide `.claude/plans/261117-pin-migration-2.md`): `pin
-  val`/`pin var`, parameter modifiers, no implicit give-away of a
-  pinned value. The tests here pass with it, with no change to the
-  code, also with ASAN, and the pause of Rocks runs. Found on the way:
-  `atmos-sdl` was not rebuilt when the compiler changed (the Makefile
-  only depended on `sdl.atm`), so the earlier check with `b463c23`
-  used a stale `atmos-sdl`; fixed (`atmos-sdl` depends on the
-  compiler too).
-- **`:frame` is kept, for every environment** (the author, 2026-11-17,
-  in the session `envs`: "Mantém frame"): `:frame` once per frame for
-  the logic, before `:draw`; `:clock` is time only. `sdl.atm` already
-  does so; pico aligns with it.
-- **The workarounds of the first migration were removed from Rocks**
-  (2026-11-17), as the author approved in the compiler session ("sim
-  para tudo", relayed): `val` for small tables and the points, the
-  rectangles built in a `val` and put in `pub`, `var acc` reassigned,
-  and the collision list as `[] ++ ships ++ ...` again. Natives and
-  pools stay pinned. Tests identical, also with ASAN.
-- **E4 is done** (2026-11-17): Pingus moved over `2723b34`
-  (`sdl-pingus` `e9fd322` code, `b7e125f` tests): all its tests
-  identical, normal and ASAN, its 6 golden screenshots identical by
-  pixels, its 159 demo traces byte-identical (its report).
-  `engine/pingus.h` went from 930 to 591 lines, the game's C only.
-  Checked here: its `tst/run.sh` (37 checks) passes against
-  `env-sdl` `9fea770` too; its demos were not rerun here.
-- **E3 is done** (2026-11-16): `sdl.atm` grown to the design, 23 tests
-  (also with `ATMOS_ASAN=1`), `doc/api.md`. What differs from the
-  design is in `doc/design.md`, 13.
-- **Decided by the author on 2026-11-16**: the design of
-  `doc/design.md` goes ahead; resources are native values; SNKRX
-  keeps its drawing in the game; one test mode (`SDL_ATM_*`); the
-  vocabulary of events of `pico.atm`; a game gets the environment as
-  a checkout at a fixed commit and uses `include`, with the plain
-  compiler: **it does not need `atmos-sdl`**.
-- **Also decided on 2026-11-16**: the C names of the prelude keep
-  the prefix `sdl_` ("sdl_ só está bom"); Rocks lives here and not in
-  the compiler ("O jogo não deveria estar em lang"). Told to the
-  compiler session, which removed `lib/sdl.atm` and `exs/rocks/` from
-  `ia-atmos/lang`.
-- **`atmos-sdl` is kept in this repository** (build, tests, Rocks,
-  readme), as the wish relayed on 2026-11-14 for every environment.
-  Read his "does not need atmos-sdl" as about the games. Told to
-  him; he may say otherwise.
-- **Migrated to the new rules of `pin`** (2026-11-15, `20f974f`,
-  `c18a419`; compiler at `09a7885`). Asked by the compiler session as
-  approved by the author; not heard from him here. 16 lines to `pin`,
-  4 rewrites in Rocks, the 8 tests identical. Reported to the
-  compiler session, with a defect of its own Rocks (the pause).
-  For the design: functions should return plain numbers, not small
-  tables, which a caller would have to `pin`.
-- **E1 is done** (2026-11-14): `doc/inventory.md`, over
-  `doc/inventory/{pingus,snkrx,flare}.md`. The layers were read, not
-  run. Main findings: a small common part; a door in C is needed
-  (Pingus, Flare, Tux); SNKRX needs a different model of drawing; the
-  games use indices never freed, `sdl.atm` native values; the games
-  compare screenshots as files, byte for byte.
-- **Rocks was copied here**, as `exs/rocks/`, to be the test of E0
-  (it takes a seed as its argument, to be deterministic). This goes
-  ahead of decision A4 only as a copy: `lib/sdl.atm` and `exs/rocks/`
-  of the compiler are untouched.
-- **`:draw` is only emitted when there is a window**, as in
-  `lib/sdl.atm`. Kept for now; to settle in E2.
-- **The screenshot of a text depends on the version of FreeType**
-  (`tst/text-2.png`, `tst/rocks-*.png`): the expected images are from
-  SDL2_ttf 2.22 of Ubuntu 24.04. To settle in E2 (a tolerance, or a
-  fixed setup).
-- **Events have no prefix** (`:key.dn`, `:draw`, not `:sdl.key.dn`).
-  Relayed by the compiler session on 2026-11-13: the author decided
-  it for all environments in the session of pico ("Unprefixed is
-  ok"); plan updated there (`eefb2dc`). Not heard from the author in
-  this session, and not found in the part of the pico transcript
-  read from here (newest 100 events only). Adopted; told to the
-  author, who may object.
+(none: everything up to 2026-11-17 acknowledged by the author on
+2026-11-18. The history is in `git log` of this file.)
