@@ -2,60 +2,80 @@
 
 Everything that is pending in `env-sdl`. Plan: `261113-env-sdl.md`.
 
+Items are `#N` (the author's standing rule of 2026-11-18): a number is
+unique in this session, never reused nor changed; from another session
+an item is `env-sdl#N`. The identifiers used before (`A1`..`A5`,
+`E0`..`E7`) stay valid for what was written with them.
+
+## Index
+
+States: **open** (waits for the author), **work** (known, not started,
+no decision needed), **waits** (waits for another session), **told**
+(reported, not acknowledged), **done**, **closed**.
+
+| # | Item | State |
+|---|------|-------|
+| 1 | E5: SNKRX over the environment | waits: `snxkx` (its migration to the rules of `pin`) |
+| 2 | E6: Flare over the environment | work, after #1 |
+| 3 | E7: what was learned | work, after #2 |
+| 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked |
+| 5 | Screenshots with text depend on the version of FreeType | work |
+| 6 | `sdl.draw_ex`: flips, rotation, tint (Tux) | waits: `sdl-tux` |
+| 7 | Loop points of a music (Tux) | waits: `sdl-tux` |
+| 8 | Blend modes at the draw (Flare) | work, if Flare asks |
+| 9 | `doc/inventory/pingus.md` out of date | work |
+| 10 | `:step [us]`, the scaled time once per frame (SNKRX) | waits: the author, on `snxkx`'s finding 8 |
+| 11 | A test of the pause of Rocks | work |
+| 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
+
 ## A. Decisions waiting for the author
 
-Asked one at a time, each with the recommended option.
-
-(none: everything asked was answered on 2026-11-16)
+(none)
 
 ## B. Work known and not done
 
-- **E5: SNKRX over the environment**, with its session, after its
-  baseline (`2bddee7` or later) and its migration to the new rules of
-  `pin`, which waits for the author. Not told to start yet.
-- **`atmos.env [step, quit, mode]`** (`lang` `81986e7`, manual
-  "Environments"): environments may now register in Atmos. Moving
-  `sdl.atm` to it is not asked yet (told by the session `envs`,
-  2026-11-17).
-- **The screenshots with text depend on the version of FreeType**
-  (`tst/text-2.png`, `tst/software-2.png`, `tst/rocks-*.png`): the
-  expected images are from SDL2_ttf 2.22 of Ubuntu 24.04. Settle when
-  another setup runs the tests (a tolerance, or a fixed setup).
-- **Not built in E3**, for when a game needs them: `sdl.draw_ex`
-  (flips, rotation, tint; Tux), the loop points of a music (Tux),
-  blend modes at the draw (Flare, over the door).
-- **`inventory/pingus.md` is out of date** in `res_desc`, `LANG`, and
-  `Sprite` (Pingus changed `engine.atm` in its migration to `pin`).
-- **SNKRX may ask for a step event** (`:step [us]`, the scaled time
-  of the frame, once per frame), if the author decides its finding 8
+- **#1 E5: SNKRX over the environment**, with its session, after its
+  baseline (`2bddee7` or later) and its migration to the rules of
+  `pin`. SNKRX keeps its drawing (canvases, geometry, shadow) in its
+  own C over the door; it needs `passes=[:draw, :overlay]`,
+  `sdl_on_flush`, `fixed=true`, and `sdl.clock`, all built. Not told
+  to start yet.
+- **#2 E6: Flare over the environment**: the software path,
+  `sdl.image(path, raw)`, `code` in the key events; its `FLARE_INPUT`
+  needs a converter to `SDL_ATM_*` (no scripted quit exists).
+- **#3 E7**: what the layers had in common, what each game changed,
+  the cost (lines, speed). Pingus: `engine/pingus.h` 930 -> 591 lines.
+- **#4** Environments may register with `atmos.env [step, quit,
+  mode]` (`lang` `81986e7`, manual "Environments"). Moving `sdl.atm`
+  to it is not asked yet (`atmos-envs`, 2026-11-17).
+- **#5** The expected images with text (`tst/text-2.png`,
+  `tst/software-2.png`, `tst/rocks-*.png`) are from SDL2_ttf 2.22 of
+  Ubuntu 24.04. Settle when another setup runs the tests (a
+  tolerance, or a fixed setup).
+- **#6, #7** Not built in E3, for when Tux needs them: a draw with
+  flips, rotation, and tint (`SDL_RenderCopyEx`, color and alpha
+  modulation); a music that loops between two points. Tux was told.
+- **#8** Blend modes at the draw: Flare draws additively over the
+  door in C today; only if it asks.
+- **#9** `doc/inventory/pingus.md` (read at `45ea8be`) is out of date
+  in `res_desc`, `LANG`, and `Sprite`, and Pingus has moved since.
+  Either update it or mark it as a picture of the layer before the
+  move.
+- **#10** SNKRX may ask for `:step [us]` (the scaled time of the
+  frame, once per frame), if the author decides its finding 8
   (physics stepped once per frame). Not to build before that.
-- **Pingus, SNKRX, and Flare answered** (2026-11-16):
-  `doc/requests/answers.md`, with what changes in the design
-  (`:frame` in microseconds, the scancode in the key events, a raw
-  image format for the software path, no `.bmp`, a fixed rate from the program, the carry
-  of `sdl.clock`, a callback of flush in C, the second pass of
-  drawing of SNKRX, still open). Baselines: Pingus `cc5fe72`, SNKRX
-  `2bddee7` or later. `inventory/pingus.md` is out of date in three
-  spots of `engine.atm`.
-- E4..E7: see the plan.
-- **A fourth client, SuperTux** (`ia-atmos/sdl-tux`, session
-  `sdl-tux`, session_011eECoijTqoBzMrEaknmW9P; plan in `ia-atmos/lang`,
-  `.claude/plans/261113-sdl-tux.md`), told by the compiler session on
-  2026-11-13. It has no layer of its own: it starts over this
-  environment from its third milestone on. Expected needs: tilemaps
-  drawn fast, sprites, fonts, sounds, a test mode with scripted input
-  by tick. Its requests, received on 2026-11-14, are in
-  `doc/requests/sdl-tux.md`; tell it when E0/E3 has what it can build
-  on, and at which commit. Count it in `doc/inventory.md` (E1) as a future client and
-  in the design (E2).
-- **Compiler changes to mind** (`ia-atmos/lang` `3cc4855`, told on
-  2026-11-14): `skip` is a statement and a reserved name; a `spawn`
-  that dies with its block is a compile error. The second fires in
-  the code of Pingus (one place) and SNKRX (three), not in their
-  layers: their sessions fix it, so the traces of those games change
-  before the move. Take the baseline of E4 and E5 after that.
-- A test of the pause of Rocks (the path is not covered; it changes
-  the expected images, so it needs a second run of the game).
+- **#11** The pause of Rocks has no test (it was run by hand); it
+  needs a second run of the game, with other expected images.
+
+## C. Reported or decided, not acknowledged
+
+- **#12** The order of a frame of `sdl.atm` is the order of all
+  environments (the author, 2026-11-18, relayed by `atmos-envs`):
+  input, `:frame`, the time, `:draw`. Nothing to change here; pico
+  and ray align with it.
+
+(Everything before was acknowledged by the author on 2026-11-18; the
+history is in `git log` of this file.)
 
 ## D. Sessions to talk to
 
@@ -71,12 +91,8 @@ Asked one at a time, each with the recommended option.
   `env-pico` session_011eECoikzsmBiPNXNF7ffpf; `atmos-envs`, where
   the author discusses all of them, session_011eECofYWTNPACTtUjHN4p6.
 
-## C. Reported or decided, not acknowledged
+## E. Done
 
-- **The order of a frame of `sdl.atm` is the order of all
-  environments** (the author, 2026-11-18, relayed by `atmos-envs`):
-  input, `:frame`, the time, `:draw`. Nothing to change here; pico
-  and ray align with it.
-
-(Everything before was acknowledged by the author on 2026-11-18; the
-history is in `git log` of this file.)
+- E0 (2026-11-14), E1 (2026-11-14), E2 (approved 2026-11-16), E3
+  (2026-11-16), E4 Pingus (2026-11-17). Details in the plan and in
+  `git log`.
