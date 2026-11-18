@@ -68,10 +68,15 @@ Asked one at a time, each with the recommended option.
   session_011eECoegYsZr7nSPxcugGtt, `sdl-tux`
   session_011eECoijTqoBzMrEaknmW9P.
 - The other environments: `env-ray` session_011eECohyySVpgZiuUF17qc2,
-  `env-pico` session_011eECoikzsmBiPNXNF7ffpf; `envs`, where the
-  author discusses all of them, session_011eECofYWTNPACTtUjHN4p6.
+  `env-pico` session_011eECoikzsmBiPNXNF7ffpf; `atmos-envs`, where
+  the author discusses all of them, session_011eECofYWTNPACTtUjHN4p6.
 
 ## C. Reported or decided, not acknowledged
 
-(none: everything up to 2026-11-17 acknowledged by the author on
-2026-11-18. The history is in `git log` of this file.)
+- **The order of a frame of `sdl.atm` is the order of all
+  environments** (the author, 2026-11-18, relayed by `atmos-envs`):
+  input, `:frame`, the time, `:draw`. Nothing to change here; pico
+  and ray align with it.
+
+(Everything before was acknowledged by the author on 2026-11-18; the
+history is in `git log` of this file.)
