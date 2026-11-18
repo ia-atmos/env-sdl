@@ -57,6 +57,20 @@ Asked one at a time, each with the recommended option.
 - A test of the pause of Rocks (the path is not covered; it changes
   the expected images, so it needs a second run of the game).
 
+## D. Sessions to talk to
+
+- The compiler: `atmos-lang` (formerly `ceu-atmos`),
+  session_011eECogKVQ7ZzmWCoMST2wK. Everything but `pin`.
+- The rules of `pin`: `atmos-pin`, session_011eECogSDhkVfyt7qme5DLh
+  (the author's decision, 2026-11-18), with a small program.
+- The games: `pingus` session_011eECoent86e4ta3otsCoEa, `snxkx`
+  session_011eECohRKf757Ydp2i9w7Ng, `flare`
+  session_011eECoegYsZr7nSPxcugGtt, `sdl-tux`
+  session_011eECoijTqoBzMrEaknmW9P.
+- The other environments: `env-ray` session_011eECohyySVpgZiuUF17qc2,
+  `env-pico` session_011eECoikzsmBiPNXNF7ffpf; `envs`, where the
+  author discusses all of them, session_011eECofYWTNPACTtUjHN4p6.
+
 ## C. Reported or decided, not acknowledged
 
 (none: everything up to 2026-11-17 acknowledged by the author on
