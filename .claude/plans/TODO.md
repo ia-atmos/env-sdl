@@ -27,6 +27,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 10 | `:step [us]`, the scaled time once per frame (SNKRX) | waits: the author, on `snxkx`'s finding 8 |
 | 11 | A test of the pause of Rocks | work |
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
+| 13 | No window under `-t` (test blocks), for the pilot of Pingus | waits: `pingus` (`atmos-lang#76`, `atmos-envs` A3) |
 
 ## A. Decisions waiting for the author
 
@@ -66,6 +67,10 @@ no decision needed), **waits** (waits for another session), **told**
   (physics stepped once per frame). Not to build before that.
 - **#11** The pause of Rocks has no test (it was run by hand); it
   needs a second run of the game, with other expected images.
+
+- **#13** Pingus pilots a test as a `test` block (`atmos-lang#76`)
+  instead of variables; it may ask how the environment avoids opening
+  a window under `-t` (`atmos-envs` A3). Nothing to do until it asks.
 
 ## C. Reported or decided, not acknowledged
 
