@@ -1,8 +1,8 @@
 ;; sdl.draw_ex in the software path: a tint, an alpha, a scale, and the
 ;; blend mode add (the rotation and the flips are ignored there).
-;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/drawex-soft-2.png
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/softex-2.png
 
-sdl.window [title="drawex", width=24, height=8, software=true]
+sdl.window [title="softex", width=24, height=8, software=true]
 
 pin ell = sdl.image("res/ell.png")
 
