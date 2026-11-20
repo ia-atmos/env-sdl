@@ -12,7 +12,7 @@ spawn {
 }
 spawn {
     loop us on :clock {
-        print(:clock, us)
+        print(:clock, us * (1000000 // 1s))
         if frames >= 2 {
             break
         }

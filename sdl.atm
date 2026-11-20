@@ -904,14 +904,15 @@ int main (int argc, char** argv) {
         }
 
         if (st==A_OK && us>0) {
-            // the clock of Atmos goes `SDL_CLOCK` times as fast, and
-            // carries what is less than a microsecond to the next frame
+            // the clock of Atmos goes `SDL_CLOCK` times as fast, in the
+            // unit of time of the build (A_TIME_US microseconds), and
+            // carries what is less than a unit to the next frame
             static double acc = 0;
             acc += us * SDL_CLOCK;
-            int64_t n = (int64_t)acc;
-            acc -= n;
+            int64_t n = (int64_t)(acc / A_TIME_US);
+            acc -= (double)n * A_TIME_US;
             if (n > 0) {
-                st = atm_emit(a_int(n));
+                st = atm_emit(a_int((AInt)n));
             }
         }
 

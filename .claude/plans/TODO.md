@@ -28,6 +28,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 11 | A test of the pause of Rocks | work |
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
 | 13 | No window under `-t` (test blocks), for the pilot of Pingus | waits: `pingus` (`atmos-lang#76`, `atmos-envs` A3) |
+| 14 | `sdl.atm` under the numeric options of the compiler | done (2026-11-20) |
 
 ## A. Decisions waiting for the author
 
@@ -71,6 +72,16 @@ no decision needed), **waits** (waits for another session), **told**
 - **#13** Pingus pilots a test as a `test` block (`atmos-lang#76`)
   instead of variables; it may ask how the environment avoids opening
   a window under `-t` (`atmos-envs` A3). Nothing to do until it asks.
+
+- **#14 (done)** Under the numeric options of `lang` `692af43`
+  (`ATMOS_REAL=float`, `ATMOS_INT=32`, `ATMOS_TIME=ms`): the clock was
+  emitted in microseconds whatever the unit; now in the unit of the
+  build, with the rest carried. Rocks divided clocks by `1000000`; now
+  by `1s`. All tests pass under each option and all together, except
+  `tst/clock` under `ms`, whose trace is of the default unit (the
+  clock goes in whole milliseconds there). Tux builds under
+  `ATMOS_REAL=float` (`atmos-lang` told). Which options an
+  environment supports is open with the author (`atmos-float#14`).
 
 ## C. Reported or decided, not acknowledged
 

@@ -55,6 +55,13 @@ spawn {
 await :key.dn
 ```
 
+The environment works under the numeric options of the compiler
+(`ATMOS_REAL=float`, `ATMOS_INT=32`, `ATMOS_TIME=ms`, manual
+"Execution"): the clock passes in the unit of time of the build, with
+the rest carried to the next frame, and `:frame` gives `us` in
+microseconds always. A program that turns a clock into seconds should
+divide by `1s` and not by a number (`val dt = us / 1s`).
+
 Images, fonts, and sounds are native values. `pin` them to release them
 with their block, or keep them in a pinned table:
 
