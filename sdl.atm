@@ -61,6 +61,13 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 
+// The unit of the clock, in microseconds: `A_CLOCK_US` of the runtime
+// (`ATMOS_CLOCK`), or `A_TIME_US` of a runtime from before the rename
+// (`ATMOS_TIME`, `ia-atmos/lang` before the branch `float`).
+#ifndef A_CLOCK_US
+#define A_CLOCK_US A_TIME_US
+#endif
+
 // The tags of the events, all in this place.
 #define SDL_EVT_QUIT    "quit"
 #define SDL_EVT_KEY_DN  "key.dn"
@@ -1021,12 +1028,12 @@ int main (int argc, char** argv) {
 
         if (st==A_OK && us>0) {
             // the clock of Atmos goes `SDL_CLOCK` times as fast, in the
-            // unit of time of the build (A_TIME_US microseconds), and
+            // unit of time of the build (A_CLOCK_US microseconds), and
             // carries what is less than a unit to the next frame
             static double acc = 0;
             acc += us * SDL_CLOCK;
-            int64_t n = (int64_t)(acc / A_TIME_US);
-            acc -= (double)n * A_TIME_US;
+            int64_t n = (int64_t)(acc / A_CLOCK_US);
+            acc -= (double)n * A_CLOCK_US;
             if (n > 0) {
                 st = atm_emit(a_int((AInt)n));
             }

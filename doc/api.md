@@ -56,7 +56,8 @@ await :key.dn
 ```
 
 The environment works under the numeric options of the compiler
-(`ATMOS_REAL=float`, `ATMOS_INT=32`, `ATMOS_TIME=ms`, manual
+(`ATMOS_FLOAT=32`, `ATMOS_INTEGER=32`, `ATMOS_CLOCK=ms`, formerly
+`ATMOS_REAL=float`, `ATMOS_INT=32`, `ATMOS_TIME=ms`; manual
 "Execution"): the clock passes in the unit of time of the build, with
 the rest carried to the next frame, and `:frame` gives `us` in
 microseconds always. A program that turns a clock into seconds should

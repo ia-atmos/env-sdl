@@ -29,6 +29,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
 | 13 | No window and no audio under `-t` (test blocks), and `sdl.test` | done (2026-11-20), by the session, to be confirmed (`atmos-envs#3b`) |
 | 14 | `sdl.atm` under the numeric options of the compiler | done (2026-11-20) |
+| 15 | The rename of the numeric options (`A_CLOCK_US`, `ATMOS_FLOAT/INTEGER/CLOCK`) | done (2026-11-20), works before and after the merge of `float` |
 
 ## A. Decisions waiting for the author
 

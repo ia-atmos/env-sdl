@@ -1,7 +1,7 @@
 ;; The factor of the clock: 1/7 as fast, then stopped, then as fast,
 ;; with the remainder carried; `:frame` keeps the time of the frames.
 ;; A factor set during `:frame` applies to the time of the same frame.
-;; With ATMOS_TIME=ms the clock goes in whole milliseconds, carrying the
+;; With ATMOS_CLOCK=ms the clock goes in whole milliseconds, carrying the
 ;; rest, so this trace is of the default unit.
 ;; env: SDL_ATM_FRAMES=9:15
 
