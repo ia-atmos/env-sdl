@@ -1,0 +1,8 @@
+;; A test of the pause of Rocks (`tst/run.sh rocks.pause`): it starts a
+;; battle, pauses it with `P` (the image of the pause), and goes on.
+;; env: SDL_ATM_FRAMES=120:16
+;; env: SDL_ATM_KEYS="5:dn:Return,30:dn:Left Shift,31:up:Left Shift,40:dn:P,41:up:P,80:dn:P,81:up:P"
+;; env: SDL_ATM_SHOT=60:../../tst/out/rocks.pause-60.png,100:../../tst/out/rocks.pause-100.png
+;; args: 1
+
+include "main.atm"

@@ -4,7 +4,9 @@
 #   tst/run.sh [name ...]
 #
 # With no names, runs every tst/*.atm, and then every example
-# exs/*/main.atm, as the test with the name of its directory. Requires `../atmos-sdl` (see the
+# exs/*/main.atm, as the test with the name of its directory, and every
+# exs/d/test-x.atm, as the test `d.x` (a test of the example that
+# includes its main.atm). Requires `../atmos-sdl` (see the
 # Makefile at the root). Set ATMOS_ASAN=1 to run under the address
 # sanitizer.
 #
@@ -43,7 +45,8 @@ fi
 
 if [ $# -eq 0 ]; then
     set -- $(ls *.atm | sed 's/\.atm$//') \
-           $(ls ../exs/*/main.atm | sed 's|^\.\./exs/||; s|/main\.atm$||')
+           $(ls ../exs/*/main.atm | sed 's|^\.\./exs/||; s|/main\.atm$||') \
+           $(ls ../exs/*/test-*.atm 2>/dev/null | sed 's|^\.\./exs/||; s|/test-|.|; s|\.atm$||')
 fi
 
 TST="$PWD"
@@ -55,6 +58,9 @@ for t in "$@"; do
     if [ -e "$t.atm" ]; then
         dir=.
         src="$t.atm"
+    elif [ "${t#*.}" != "$t" ]; then
+        dir="../exs/${t%%.*}"
+        src="test-${t#*.}.atm"
     else
         dir="../exs/$t"
         src=main.atm
