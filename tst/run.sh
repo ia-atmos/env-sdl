@@ -16,7 +16,9 @@
 #   ;; env: SDL_ATM_FRAMES=10:16 SDL_ATM_KEYS="2:dn:Left Shift"
 #
 # and a line that starts with `;; args:` gives the arguments of the
-# program. Both are read by the shell.
+# program, and `;; flags:` the options of the compiler (as `-t`). They
+# are read by the shell. With `-t`, the test runs with no dummy drivers
+# of SDL: the environment must open no window that shows and no audio.
 #
 # The program runs in its own directory.
 # Its standard output is its trace: it must be equal to `tst/x.out`.
@@ -67,10 +69,15 @@ for t in "$@"; do
     fi
     vars=$(sed -n 's/^;; env: *//p' "$dir/$src" | tr '\n' ' ')
     args=$(sed -n 's/^;; args: *//p' "$dir/$src" | tr '\n' ' ')
+    flags=$(sed -n 's/^;; flags: *//p' "$dir/$src" | tr '\n' ' ')
+    drivers="SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy"
+    case " $flags " in
+        *" -t "*) drivers="-u SDL_VIDEODRIVER -u SDL_AUDIODRIVER" ;;
+    esac
     (
         cd "$dir" &&
-        eval "env SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy $vars \
-            \"\$TST/../atmos-sdl\" $src $args"
+        eval "env $drivers $vars \
+            \"\$TST/../atmos-sdl\" $flags $src $args"
     ) > "out/$t.out" 2> "out/$t.err"
     code=$?
     if [ -n "$SDL_ATM_ACCEPT" ] && [ $code -eq 0 ]; then

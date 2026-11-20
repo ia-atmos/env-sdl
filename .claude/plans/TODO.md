@@ -27,7 +27,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 10 | `:step [us]`, the scaled time once per frame (SNKRX) | waits: the author, on `snxkx`'s finding 8 |
 | 11 | A test of the pause of Rocks | done (2026-11-20): `exs/rocks/test-pause.atm` |
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
-| 13 | No window under `-t` (test blocks), for the pilot of Pingus | waits: `pingus` (`atmos-lang#76`, `atmos-envs` A3) |
+| 13 | No window and no audio under `-t` (test blocks), and `sdl.test` | done (2026-11-20), by the session, to be confirmed (`atmos-envs#3b`) |
 | 14 | `sdl.atm` under the numeric options of the compiler | done (2026-11-20) |
 
 ## A. Decisions waiting for the author
@@ -82,6 +82,16 @@ no decision needed), **waits** (waits for another session), **told**
   clock goes in whole milliseconds there). Tux builds under
   `ATMOS_REAL=float` (`atmos-lang` told). Which options an
   environment supports is open with the author (`atmos-float#14`).
+
+- **#13 (done, by the session, to be confirmed)**: under `-t`, a
+  `test` block of `sdl.atm` sets `SDL_TEST`: the window uses the dummy
+  driver (unless `SDL_VIDEODRIVER` names another), the audio is not
+  opened, `sdl.testing()` is true; `sdl.test.key/mouse/clear/shot`.
+  The video and the audio are now opened when used (the window, the
+  first sound), not at the start. As proposed in `atmos-envs#3b`,
+  which waits for the author; reversible. Checked: the 26 tests here,
+  `tst/minus-t.atm` with no dummy drivers, the suite of Pingus, and its
+  `bomber-test.atm` with no dummy drivers.
 
 ## C. Reported or decided, not acknowledged
 

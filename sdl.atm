@@ -89,6 +89,7 @@ static int           SDL_LH  = 0;
 static int           SDL_FPS = 60;      // the cap of frames per second (0: none)
 static int           SDL_FIXED = 0;     // frames of exactly 1/SDL_FPS s
 static int           SDL_SND = 0;       // the audio device is open
+static int           SDL_SND_TRIED = 0; // its opening was tried (sdl_audio)
 static double        SDL_SND_VOL = 1.0; // the volume of the sounds
 static Mix_Music*    SDL_MUS = NULL;    // the music, and its file
 static double        SDL_MUS_FROM = 0;  // its loop: from `to` back to `from`
@@ -99,7 +100,8 @@ static int           SDL_MY  = 0;
 static Uint8         SDL_KEYS[SDL_NUM_SCANCODES];  // pressed, by scancode
 static double        SDL_CLOCK = 1.0;   // the factor of the clock
 static int           SDL_FRAME = 0;     // the current frame, from 1
-static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES)
+static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES, or -t)
+static int           SDL_TEST = 0;      // under -t (set by a `test` block below)
 static void        (*SDL_FLUSH) (int) = NULL;  // see sdl_on_flush
 static char*         SDL_PASSES[8] = { NULL };  // the tags of the passes
 
@@ -175,16 +177,30 @@ static const char* sdl_str (AVal t, const char* k, const char* def) {
     return (v.type == A_STR) ? A_STR_OF(v)->s : def;
 }
 
-// Whether the key of a name is pressed: the name of a key ('A',
-// 'Left Shift'), or else of a scancode.
-static int sdl_key (AVal name) {
+// The scancode of a name: the name of a key ('A', 'Left Shift'), or
+// else of a scancode; SDL_SCANCODE_UNKNOWN if none.
+static SDL_Scancode sdl_code (AVal name) {
     if (name.type != A_STR) {
-        return 0;
+        return SDL_SCANCODE_UNKNOWN;
     }
     SDL_Keycode key = SDL_GetKeyFromName(A_STR_OF(name)->s);
     SDL_Scancode code = (key != SDLK_UNKNOWN) ? SDL_GetScancodeFromKey(key)
         : SDL_GetScancodeFromName(A_STR_OF(name)->s);
-    return (code>SDL_SCANCODE_UNKNOWN && code<SDL_NUM_SCANCODES) ? SDL_KEYS[code] : 0;
+    return (code>SDL_SCANCODE_UNKNOWN && code<SDL_NUM_SCANCODES) ? code : SDL_SCANCODE_UNKNOWN;
+}
+
+// Whether the key of a name is pressed.
+static int sdl_key (AVal name) {
+    SDL_Scancode code = sdl_code(name);
+    return (code != SDL_SCANCODE_UNKNOWN) ? SDL_KEYS[code] : 0;
+}
+
+// Sets the state of the key of a name (sdl.test.key).
+static void sdl_key_set (AVal name, int down) {
+    SDL_Scancode code = sdl_code(name);
+    if (code != SDL_SCANCODE_UNKNOWN) {
+        SDL_KEYS[code] = down;
+    }
 }
 
 // The window in fullscreen or not, its size (if not in fullscreen, and
@@ -194,7 +210,7 @@ static void sdl_display (int full, int w, int h, int grab, int cursor) {
     if (SDL_WIN == NULL) {
         return;
     }
-    if (!SDL_TESTING) {
+    if (!SDL_TESTING && !SDL_TEST) {
         SDL_SetWindowFullscreen(SDL_WIN, full ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
         if (!full && w>0 && h>0) {
             SDL_SetWindowSize(SDL_WIN, w, h);
@@ -223,6 +239,15 @@ static void sdl_window (AVal t) {
     a_dec(k);
     SDL_LW = sdl_int(sdl_get(lg, a_int(0)), 0);
     SDL_LH = sdl_int(sdl_get(lg, a_int(1)), 0);
+    // under -t, no window is shown: the dummy driver, unless the test
+    // names another
+    if (SDL_TEST && getenv("SDL_VIDEODRIVER")==NULL) {
+        SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);
+    }
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+        fprintf(stderr, "sdl : %s\n", SDL_GetError());
+        exit(1);
+    }
     SDL_WIN = SDL_CreateWindow(sdl_str(t,"title","Atmos"),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, 0);
     if (SDL_WIN != NULL) {
@@ -311,7 +336,9 @@ static SDL_Texture* sdl_img_tex (SDL_Image* img) {
 //                                      screenshot and the present;
 //                                      `render` is 0 in a frame of the
 //                                      test mode with no screenshot
-//  int           SDL_FRAME, SDL_TESTING    as sdl.frame(), sdl.testing()
+//  int           SDL_FRAME, SDL_TESTING, SDL_TEST
+//                                      the frame, the test mode of the
+//                                      variables, and -t
 ///////////////////////////////////////////////////////////////////////////////
 
 static SDL_Window*   sdl_win (void) { return SDL_WIN; }
@@ -595,6 +622,22 @@ static void sdl_text (AVal fnt, AVal txt, int x, int y, AVal rgba, int align) {
     SDL_FreeSurface(sfc);
 }
 
+// The audio device, opened at the first use, unless SDL_ATM_MUTE or
+// under -t: whether it is open.
+static int sdl_audio (void) {
+    if (!SDL_SND_TRIED) {
+        SDL_SND_TRIED = 1;
+        if (!SDL_TEST && getenv("SDL_ATM_MUTE")==NULL
+            && SDL_InitSubSystem(SDL_INIT_AUDIO)==0
+            && Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024)==0)
+        {
+            SDL_SND = 1;
+            Mix_AllocateChannels(64);
+        }
+    }
+    return SDL_SND;
+}
+
 // A sound from a file, or nil. With no audio device (SDL_ATM_MUTE),
 // a sound has no chunk, and plays nothing, if its file exists.
 static AVal sdl_sound (AVal path) {
@@ -602,7 +645,7 @@ static AVal sdl_sound (AVal path) {
         return a_nil();
     }
     Mix_Chunk* chk = NULL;
-    if (SDL_SND) {
+    if (sdl_audio()) {
         chk = Mix_LoadWAV(A_STR_OF(path)->s);
         if (chk == NULL) {
             return a_nil();
@@ -656,7 +699,7 @@ static int sdl_music (AVal path, int loops, double from, double to) {
     if (path.type != A_STR) {
         return 0;
     }
-    if (!SDL_SND) {
+    if (!sdl_audio()) {
         return 1;
     }
     const char* p = A_STR_OF(path)->s;
@@ -699,7 +742,7 @@ static double sdl_music_pos (void) {
 // The volumes of the sounds and of the music, from 0 to 1.
 static void sdl_volume (double snd, double mus) {
     SDL_SND_VOL = snd;
-    if (SDL_SND) {
+    if (sdl_audio()) {
         Mix_Volume(-1, (int)(snd * MIX_MAX_VOLUME));
         Mix_VolumeMusic((int)(mus * MIX_MAX_VOLUME));
     }
@@ -838,6 +881,26 @@ static const char* sdl_script_src (const char* var) {
     return src;
 }
 
+// Saves the screen as a PNG: the screen surface (at the logical size),
+// or what the renderer drew (at the size of the window).
+static void sdl_shot (const char* path) {
+    if (SDL_REN == NULL) {
+        return;
+    }
+    SDL_Surface* sfc;
+    if (SDL_SCR != NULL) {
+        sfc = SDL_ConvertSurfaceFormat(SDL_SCR, SDL_PIXELFORMAT_RGBA32, 0);
+    } else {
+        int w, h;
+        SDL_GetRendererOutputSize(SDL_REN, &w, &h);
+        sfc = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
+        SDL_RenderReadPixels(SDL_REN, NULL, SDL_PIXELFORMAT_RGBA32,
+            sfc->pixels, sfc->pitch);
+    }
+    IMG_SavePNG(sfc, path);
+    SDL_FreeSurface(sfc);
+}
+
 // Whether a variable of the test mode has an entry for a frame.
 static int sdl_script_has (const char* var, int frame) {
     const char* s = sdl_script_src(var);
@@ -866,21 +929,7 @@ static AStatus sdl_script (const char* var, int frame) {
         }
         arg++;
         if (!strcmp(var, "SDL_ATM_SHOT")) {
-            // the screen surface (at the logical size), or what the
-            // renderer drew (at the size of the window)
-            SDL_Surface* sfc;
-            if (SDL_SCR != NULL) {
-                sfc = SDL_ConvertSurfaceFormat(SDL_SCR, SDL_PIXELFORMAT_RGBA32, 0);
-            } else {
-                int w, h;
-                SDL_GetRendererOutputSize(SDL_REN, &w, &h);
-                sfc = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32,
-                    SDL_PIXELFORMAT_RGBA32);
-                SDL_RenderReadPixels(SDL_REN, NULL, SDL_PIXELFORMAT_RGBA32,
-                    sfc->pixels, sfc->pitch);
-            }
-            IMG_SavePNG(sfc, arg);
-            SDL_FreeSurface(sfc);
+            sdl_shot(arg);
         } else if (!strcmp(var, "SDL_ATM_MOUSE")) {
             int x=0, y=0, but=1;
             if (sscanf(arg, "mv:%d:%d", &x, &y) == 2) {
@@ -905,15 +954,10 @@ static AStatus sdl_script (const char* var, int frame) {
 }
 
 int main (int argc, char** argv) {
-    int mute = (getenv("SDL_ATM_MUTE") != NULL);
-    if (mute || SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)!=0) {
-        SDL_Init(SDL_INIT_VIDEO);
-    }
+    // the video and the audio are opened when used: the window by
+    // sdl.window, the audio by the first sound (sdl_audio)
+    SDL_Init(SDL_INIT_EVENTS);
     TTF_Init();
-    SDL_SND = !mute && (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == 0);
-    if (SDL_SND) {
-        Mix_AllocateChannels(64);
-    }
 
     // test mode: a fixed number of frames with a fixed duration
     int frames = -1;
@@ -1060,6 +1104,12 @@ int main (int argc, char** argv) {
     return (st == A_OK) ? 0 : 1;
 }
 ```
+
+;; Under -t (`test` blocks), the environment opens no window that shows
+;; and no audio: the program is driven by its tests (see `sdl.test`).
+test {
+    `SDL_TEST = 1;`
+}
 
 pin sdl = [
     ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=,
@@ -1232,10 +1282,30 @@ pin sdl = [
         `:number SDL_FRAME`
     },
 
-    ;; sdl.testing(): whether in the test mode (SDL_ATM_FRAMES)
+    ;; sdl.testing(): whether in the test mode (SDL_ATM_FRAMES, or -t)
     testing = func () {
-        `:boolean SDL_TESTING`
+        `:boolean (SDL_TESTING || SDL_TEST)`
     },
+
+    ;; sdl.test: for a `test` block, what it cannot `emit`
+    ;;  - key(name, down): the state of a key for `sdl.key`
+    ;;  - mouse(x, y): the position for `sdl.mouse`
+    ;;  - clear(): clears the screen, as a frame does before `:draw`
+    ;;  - shot(path): saves the screen as a PNG
+    test = [
+        key = func (name, down) {
+            `sdl_key_set($name, a_truthy($down));`
+        },
+        mouse = func (x, y) {
+            `SDL_MX = sdl_int($x,0); SDL_MY = sdl_int($y,0);`
+        },
+        clear = func () {
+            `if (SDL_SCR != NULL) { SDL_FillRect(SDL_SCR, NULL, SDL_MapRGBA(SDL_SCR->format, 0, 0, 0, 255)); } else if (SDL_REN != NULL) { SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255); SDL_RenderClear(SDL_REN); }`
+        },
+        shot = func (path) {
+            `if ($path.type == A_STR) { sdl_shot(A_STR_OF($path)->s); }`
+        },
+    ],
 
     ;; sdl.mouse(): the last position of the mouse
     mouse = func () {

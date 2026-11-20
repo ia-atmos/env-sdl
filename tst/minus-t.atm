@@ -1,0 +1,29 @@
+;; Under -t (`test` blocks), with no dummy drivers of SDL: the window
+;; does not show, there is no audio, and `sdl.test` gives what a test
+;; cannot emit. The test drives the program; the loop does not run.
+;; flags: -t
+
+test {
+    sdl.window [title="minus-t", width=8, height=4]
+    print(:testing, sdl.testing())
+
+    pin snd = sdl.sound("../exs/rocks/snds/shot.wav")
+    print(:sound, type(snd), sdl.play(snd), sdl.music("../exs/rocks/snds/start.wav"))
+
+    sdl.test.key('A', true)
+    sdl.test.mouse(3, 2)
+    print(:key, sdl.key('A'), sdl.key('B'))
+    print(:mouse, sdl.mouse())
+    sdl.test.key('A', false)
+    print(:key, sdl.key('A'))
+
+    spawn {
+        loop on :draw {
+            sdl.fill(0xFF0000FF, 0, 0, 4, 4)
+        }
+    }
+    sdl.test.clear()
+    emit(:draw)
+    sdl.test.shot("out/minus-t-1.png")
+    print(:ok)
+}

@@ -265,6 +265,33 @@ The tests of this repository compare the standard output of a program
 (its trace) and its screenshots, pixel by pixel (`tools/pngcmp.c`):
 see `tst/run.sh`.
 
+### Under `-t`
+
+A program built with `-t` runs its `test` blocks, which drive it: they
+emit the events, and the loop of the environment does not run while
+they do. Under `-t` the environment opens no window that shows (the
+dummy driver of SDL, unless `SDL_VIDEODRIVER` names another) and no
+audio, so a test needs no variable of SDL. `sdl.testing()` is true.
+For what a test cannot `emit`, `sdl.test`:
+
+| Function | |
+|---|---|
+| `sdl.test.key(name, down)` | the state of a key for `sdl.key` |
+| `sdl.test.mouse(x, y)` | the position for `sdl.mouse` |
+| `sdl.test.clear()` | clears the screen, as a frame does before `:draw` |
+| `sdl.test.shot(path)` | saves the screen as a PNG |
+
+```
+test {
+    sdl.window [title="t", width=8, height=4]
+    sdl.test.clear()
+    emit(:draw)
+    sdl.test.shot("out.png")
+}
+```
+
+This follows the proposal `atmos-envs#3b`, which waits for the author.
+
 ## The door in C
 
 For the C of a program, which draws by itself or keeps pointers of SDL.
