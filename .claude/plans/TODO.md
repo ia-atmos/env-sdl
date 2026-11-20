@@ -18,13 +18,13 @@ no decision needed), **waits** (waits for another session), **told**
 | 1 | E5: SNKRX over the environment | waits: `snxkx` (its migration to the rules of `pin`) |
 | 2 | E6: Flare over the environment | work, after #1 |
 | 3 | E7: what was learned | work, after #2 |
-| 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked |
+| 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked; no environment has moved to it yet |
 | 5 | Screenshots with text depend on the version of FreeType | work |
 | 6 | `sdl.draw_ex`: flips, rotation, tint (Tux) | done (2026-11-20) |
 | 7 | Loop points of a music (Tux) | done (2026-11-20) |
 | 8 | Blend modes at the draw (Flare) | done (2026-11-20), in `sdl.draw_ex` |
 | 9 | `doc/inventory/pingus.md` out of date | done (2026-11-20): marked as a picture of E1 |
-| 10 | `:step [us]`, the scaled time once per frame (SNKRX) | waits: the author, on `snxkx`'s finding 8 |
+| 10 | `:step [us]`, the scaled time once per frame (SNKRX) | settled by the session, to be confirmed: #10a, no `:step` here |
 | 11 | A test of the pause of Rocks | done (2026-11-20): `exs/rocks/test-pause.atm` |
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
 | 13 | No window and no audio under `-t` (test blocks), and `sdl.test` | done (2026-11-20), by the session, to be confirmed (`atmos-envs#3b`) |
@@ -92,6 +92,12 @@ no decision needed), **waits** (waits for another session), **told**
   which waits for the author; reversible. Checked: the 26 tests here,
   `tst/minus-t.atm` with no dummy drivers, the suite of Pingus, and its
   `bomber-test.atm` with no dummy drivers.
+
+- **#10 (settled by the session, to be confirmed)**: #10a, the
+  recommendation: the environment emits no `:step`; if the author says
+  yes to SNKRX's finding 8, SNKRX emits its own step from `:frame`
+  (`e.us` times its factor, with its own carry). Nothing built; told
+  to SNKRX. Undo: build `:step [us]` after the clock (#10b).
 
 ## C. Reported or decided, not acknowledged
 
