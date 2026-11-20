@@ -162,6 +162,7 @@ test mode, the window keeps its size.
 | `sdl.draw(img, x, y)` | the whole image at a position |
 | `sdl.part(img, sx,sy,sw,sh, x,y [,alpha])` | a part of an image at a position, with an alpha from 0 to 255 (default 255) |
 | `sdl.scale(img, sx,sy,sw,sh, x,y,w,h [,alpha])` | a part of an image into a rectangle of another size |
+| `sdl.draw_ex(img, sx,sy,sw,sh, x,y,w,h [,angle [,flip [,rgba [,blend]]]])` | a part of an image into a rectangle, rotated by `angle` degrees (clockwise, around its center), flipped (`:h`, `:v`, `:hv`), with its color and alpha modulated by `rgba` (default `0xFFFFFFFF`), and a blend mode (`:blend` default, `:add`, `:mod`, `:none`); in the software path, no rotation and no flips |
 | `sdl.fill(rgba, x,y,w,h)` | a filled rectangle, blended |
 | `sdl.rect(rgba, x,y,w,h)` | the outline of a rectangle |
 | `sdl.line(rgba, x1,y1,x2,y2)` | a line |
@@ -202,7 +203,8 @@ loop on :draw {
 |---|---|
 | `sdl.sound(path)` | a sound (wav, ogg, ...), or `nil` |
 | `sdl.play(snd [,vol])` | plays a sound once, with a volume from 0 to 1 (default 1) times the volume of the sounds; the channel, or -1 |
-| `sdl.music(path [,loops])` | plays a music `loops` times (default -1, forever), in place of the current one; the same music that plays goes on; whether the file was loaded |
+| `sdl.music(path [,loops [,from, to]])` | plays a music `loops` times (default -1, forever), in place of the current one; the same music that plays goes on; with `to` (seconds) it loops forever, going back to `from` when it passes `to` (checked once per frame); whether the file was loaded |
+| `sdl.music_pos()` | the position of the music, in seconds, or -1 |
 | `sdl.music_stop([fade])` | stops the music, fading out in `fade` milliseconds (default 0) |
 | `sdl.volume(sounds, music)` | the volumes, from 0 to 1 |
 

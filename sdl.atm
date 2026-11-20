@@ -91,6 +91,8 @@ static int           SDL_FIXED = 0;     // frames of exactly 1/SDL_FPS s
 static int           SDL_SND = 0;       // the audio device is open
 static double        SDL_SND_VOL = 1.0; // the volume of the sounds
 static Mix_Music*    SDL_MUS = NULL;    // the music, and its file
+static double        SDL_MUS_FROM = 0;  // its loop: from `to` back to `from`
+static double        SDL_MUS_TO   = 0;  //  (seconds; no loop if `to` is 0)
 static char*         SDL_MUS_PATH = NULL;
 static int           SDL_MX  = 0;       // the last position of the mouse
 static int           SDL_MY  = 0;
@@ -384,6 +386,9 @@ static void sdl_blit (AVal v, SDL_Rect* src, SDL_Rect* dst, int alpha) {
             img->sfc = cvt;
             img->cvt = 1;
         }
+        if (dst == NULL) {
+            return;     // only converts it
+        }
         SDL_SetSurfaceBlendMode(img->sfc, SDL_BLENDMODE_BLEND);
         SDL_SetSurfaceAlphaMod(img->sfc, alpha);
         int w = src ? src->w : img->sfc->w;
@@ -425,6 +430,56 @@ static void sdl_part (AVal v, int sx, int sy, int sw, int sh,
     SDL_Rect s = { sx, sy, sw, sh };
     SDL_Rect d = { x, y, w, h };
     sdl_blit(v, &s, &d, alpha);
+}
+
+// Draws the part `s` of an image into `d`, rotated by `angle` degrees
+// (clockwise, around the center of `d`), flipped (1 horizontally, 2
+// vertically, 3 both), modulated by the color `rgba` (its alpha too),
+// with a blend mode (0 blend, 1 add, 2 mod, 3 none). In the software
+// path, the rotation and the flips are ignored.
+static void sdl_draw_ex (AVal v, int sx, int sy, int sw, int sh,
+    int x, int y, int w, int h, double angle, int flip, AVal rgba, int blend)
+{
+    static const SDL_BlendMode MODES[] = {
+        SDL_BLENDMODE_BLEND, SDL_BLENDMODE_ADD, SDL_BLENDMODE_MOD, SDL_BLENDMODE_NONE
+    };
+    SDL_BlendMode mode = MODES[(blend>=0 && blend<=3) ? blend : 0];
+    SDL_Color c = sdl_rgba(rgba, 0xFFFFFFFF);
+    SDL_Rect src = { sx, sy, sw, sh };
+    SDL_Rect dst = { x, y, w, h };
+    SDL_Image* img = sdl_img(v);
+    if (img == NULL) {
+        return;
+    }
+    if (SDL_SCR != NULL) {
+        sdl_blit(v, NULL, NULL, -1);    // converts it, if it is not raw
+        SDL_SetSurfaceBlendMode(img->sfc, mode);
+        SDL_SetSurfaceColorMod(img->sfc, c.r, c.g, c.b);
+        SDL_SetSurfaceAlphaMod(img->sfc, c.a);
+        if (dst.w==sw && dst.h==sh) {
+            SDL_BlitSurface(img->sfc, &src, SDL_SCR, &dst);
+        } else {
+            SDL_BlitScaled(img->sfc, &src, SDL_SCR, &dst);
+        }
+        SDL_SetSurfaceBlendMode(img->sfc, SDL_BLENDMODE_BLEND);
+        SDL_SetSurfaceColorMod(img->sfc, 255, 255, 255);
+        SDL_SetSurfaceAlphaMod(img->sfc, 255);
+        return;
+    }
+    SDL_Texture* tex = sdl_img_tex(img);
+    if (tex == NULL) {
+        return;
+    }
+    SDL_BlendMode old;
+    SDL_GetTextureBlendMode(tex, &old);
+    SDL_SetTextureBlendMode(tex, mode);
+    SDL_SetTextureColorMod(tex, c.r, c.g, c.b);
+    SDL_SetTextureAlphaMod(tex, c.a);
+    SDL_RenderCopyEx(SDL_REN, tex, &src, &dst, angle, NULL,
+        (SDL_RendererFlip)(((flip&1) ? SDL_FLIP_HORIZONTAL : 0) | ((flip&2) ? SDL_FLIP_VERTICAL : 0)));
+    SDL_SetTextureBlendMode(tex, old);
+    SDL_SetTextureColorMod(tex, 255, 255, 255);
+    SDL_SetTextureAlphaMod(tex, 255);
 }
 
 // Fills a rectangle of the screen surface, blending its color.
@@ -597,7 +652,7 @@ static void sdl_music_stop (int fade) {
 // Plays a music, `loops` times (-1 forever), in place of the current
 // one. The same music that already plays goes on. Returns whether the
 // file was loaded (always true with no audio device).
-static int sdl_music (AVal path, int loops) {
+static int sdl_music (AVal path, int loops, double from, double to) {
     if (path.type != A_STR) {
         return 0;
     }
@@ -608,6 +663,8 @@ static int sdl_music (AVal path, int loops) {
     if (SDL_MUS_PATH!=NULL && !strcmp(SDL_MUS_PATH,p) && Mix_PlayingMusic()) {
         return 1;
     }
+    SDL_MUS_FROM = from;
+    SDL_MUS_TO   = to;
     if (SDL_MUS != NULL) {
         Mix_HaltMusic();
         Mix_FreeMusic(SDL_MUS);
@@ -620,8 +677,23 @@ static int sdl_music (AVal path, int loops) {
         return 0;
     }
     SDL_MUS_PATH = strdup(p);
-    Mix_PlayMusic(SDL_MUS, loops);
+    Mix_PlayMusic(SDL_MUS, (to > 0) ? -1 : loops);
     return 1;
+}
+
+// The loop of the music, once per frame: past `to`, back to `from`.
+static void sdl_music_loop (void) {
+    if (SDL_MUS!=NULL && SDL_MUS_TO>0 && SDL_MUS_PATH!=NULL) {
+        double pos = Mix_GetMusicPosition(SDL_MUS);
+        if (pos >= SDL_MUS_TO) {
+            Mix_SetMusicPosition(SDL_MUS_FROM + (pos - SDL_MUS_TO));
+        }
+    }
+}
+
+// The position of the music, in seconds, or -1.
+static double sdl_music_pos (void) {
+    return (SDL_MUS!=NULL && SDL_MUS_PATH!=NULL) ? Mix_GetMusicPosition(SDL_MUS) : -1;
 }
 
 // The volumes of the sounds and of the music, from 0 to 1.
@@ -943,6 +1015,8 @@ int main (int argc, char** argv) {
             SDL_RenderPresent(SDL_REN);
         }
 
+        sdl_music_loop();
+
         // the cap: the rest of the frame, but not in the test mode
         if (frames>0 && frame>=frames) {
             quit = 1;
@@ -1036,6 +1110,28 @@ pin sdl = [
         `sdl_part($img, sdl_int($sx,0), sdl_int($sy,0), sdl_int($sw,0), sdl_int($sh,0), sdl_int($x,0), sdl_int($y,0), sdl_int($w,0), sdl_int($h,0), sdl_int($alpha,255));`
     },
 
+    ;; sdl.draw_ex(img, sx,sy,sw,sh, x,y,w,h [,angle [,flip [,rgba [,blend]]]]):
+    ;; a part of an image into a rectangle, rotated by `angle` degrees
+    ;; (clockwise, around its center), flipped (:h, :v, or :hv), with
+    ;; its color and its alpha modulated by `rgba` (0xRRGGBBAA, default
+    ;; 0xFFFFFFFF), and a blend mode (:blend default, :add, :mod,
+    ;; :none); in the software path, no rotation and no flips
+    draw_ex = func (img, sx,sy,sw,sh, x,y,w,h, angle, flip, rgba, blend) {
+        val f = match flip {
+            :h  => 1
+            :v  => 2
+            :hv => 3
+            else => 0
+        }
+        val b = match blend {
+            :add  => 1
+            :mod  => 2
+            :none => 3
+            else  => 0
+        }
+        `sdl_draw_ex($img, sdl_int($sx,0), sdl_int($sy,0), sdl_int($sw,0), sdl_int($sh,0), sdl_int($x,0), sdl_int($y,0), sdl_int($w,0), sdl_int($h,0), a_isnum($angle) ? a_dbl($angle) : 0.0, sdl_int($f,0), $rgba, sdl_int($b,0));`
+    },
+
     ;; sdl.fill(rgba, x,y,w,h): a filled rectangle, with a color
     ;; 0xRRGGBBAA
     fill = func (rgba, x,y,w,h) {
@@ -1085,11 +1181,18 @@ pin sdl = [
         `:number sdl_play($snd, a_isnum($vol) ? a_dbl($vol) : 1.0)`
     },
 
-    ;; sdl.music(path [,loops]): plays a music `loops` times (default -1,
-    ;; forever), in place of the current one; the same music goes on;
+    ;; sdl.music(path [,loops [,from, to]]): plays a music `loops` times
+    ;; (default -1, forever), in place of the current one; the same
+    ;; music goes on; with `to` (seconds), it loops forever: when it
+    ;; passes `to` it goes back to `from`, checked once per frame;
     ;; whether the file was loaded
-    music = func (path, loops) {
-        `:boolean sdl_music($path, sdl_int($loops,-1))`
+    music = func (path, loops, from, to) {
+        `:boolean sdl_music($path, sdl_int($loops,-1), a_isnum($from) ? a_dbl($from) : 0.0, a_isnum($to) ? a_dbl($to) : 0.0)`
+    },
+
+    ;; sdl.music_pos(): the position of the music, in seconds, or -1
+    music_pos = func () {
+        `:number sdl_music_pos()`
     },
 
     ;; sdl.music_stop([fade]): stops the music, fading out in `fade`

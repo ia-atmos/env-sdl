@@ -1,0 +1,14 @@
+;; A music with loop points: loaded, a position; the same music goes on.
+;; (The position moves with the audio device, not with the frames, so
+;; the trace only shows that it is a number.)
+;; env: SDL_ATM_FRAMES=3:16
+
+sdl.window [title="music", width=20, height=20]
+
+print(sdl.music_pos())
+print(sdl.music("../exs/rocks/snds/start.wav", -1, 0.1, 0.3))
+print(type(sdl.music_pos()), sdl.music_pos() >= 0)
+print(sdl.music("../exs/rocks/snds/start.wav", -1, 0.1, 0.3))
+await :draw
+sdl.music_stop()
+print(sdl.music_pos())

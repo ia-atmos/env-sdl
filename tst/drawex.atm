@@ -1,0 +1,22 @@
+;; sdl.draw_ex: flips, a rotation of 90 degrees, a scale, a tint, an
+;; alpha, and the blend modes add and none.
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/drawex-2.png
+
+sdl.window [title="drawex", width=40, height=8]
+
+pin ell = sdl.image("res/ell.png")
+
+loop on :draw {
+    sdl.fill(0x404040FF, 0, 0, 40, 8)
+    sdl.draw_ex(ell, 0,0,4,4, 0,0,4,4)
+    sdl.draw_ex(ell, 0,0,4,4, 5,0,4,4, 0, :h)
+    sdl.draw_ex(ell, 0,0,4,4, 10,0,4,4, 0, :v)
+    sdl.draw_ex(ell, 0,0,4,4, 15,0,4,4, 0, :hv)
+    sdl.draw_ex(ell, 0,0,4,4, 20,0,4,4, 90)
+    sdl.draw_ex(ell, 0,0,4,4, 25,0,8,8)
+    sdl.draw_ex(ell, 0,0,4,4, 0,4,4,4, 0, nil, 0x0000FFFF)
+    sdl.draw_ex(ell, 0,0,4,4, 5,4,4,4, 0, nil, 0xFFFFFF80)
+    sdl.draw_ex(ell, 0,0,4,4, 10,4,4,4, 0, nil, nil, :add)
+    sdl.draw_ex(ell, 0,0,4,4, 15,4,4,4, 0, nil, nil, :none)
+    sdl.draw(ell, 34, 4)    ;; back to normal after them
+}
