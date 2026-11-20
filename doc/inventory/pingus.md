@@ -1,5 +1,10 @@
 # Inventory: the SDL2 platform layer of Pingus
 
+> **A picture of the layer before the move.** Pingus moved over this
+> environment on 2026-11-17 (`sdl-pingus` `e9fd322`): its layer is
+> now the game's C over the door of `sdl.atm`. This document is kept
+> as the record of E1, and is not updated.
+
 Game: `/home/user/sdl-pingus` at commit `45ea8be`. Base environment
 compared: `/home/user/lang/lib/sdl.atm` (374 lines) at `e9cafa7`.
 This document only records what exists; it proposes nothing.

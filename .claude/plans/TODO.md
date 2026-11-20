@@ -23,7 +23,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 6 | `sdl.draw_ex`: flips, rotation, tint (Tux) | waits: `sdl-tux` |
 | 7 | Loop points of a music (Tux) | waits: `sdl-tux` |
 | 8 | Blend modes at the draw (Flare) | work, if Flare asks |
-| 9 | `doc/inventory/pingus.md` out of date | work |
+| 9 | `doc/inventory/pingus.md` out of date | done (2026-11-20): marked as a picture of E1 |
 | 10 | `:step [us]`, the scaled time once per frame (SNKRX) | waits: the author, on `snxkx`'s finding 8 |
 | 11 | A test of the pause of Rocks | work |
 | 12 | The order of a frame of `sdl.atm` is the order of all environments | told |

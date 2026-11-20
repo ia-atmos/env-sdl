@@ -1,5 +1,8 @@
 # Inventory: the SDL2 layer of `sdl-flare`
 
+> **A picture of the layer at the time of E1** (2026-11-14). It is
+> not updated as Flare changes; read its repository for the present.
+
 The platform layer of the port of Flare to Atmos, as found in
 `/home/user/sdl-flare` at commit `f301ff3` (read on 2026-11-14).
 Only a record: what the layer offers, and what the game uses.

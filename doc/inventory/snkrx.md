@@ -1,5 +1,8 @@
 # Inventory: the platform layer of SNKRX
 
+> **A picture of the layer at the time of E1** (2026-11-14). It is
+> not updated as SNKRX changes; read its repository for the present.
+
 The SDL2 layer of the port of SNKRX to Atmos, as found in
 `/home/user/sdl-snxkx` at commit `f47cf6e` (read-only). This is a
 record of what the layer offers and of what the game uses, with no
