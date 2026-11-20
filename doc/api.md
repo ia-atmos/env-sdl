@@ -146,7 +146,7 @@ Opens the window. With no window, there is no `:draw`.
   `passes=[:draw, :overlay]`.
 
 ```
-sdl.display(fullscreen, w, h, grab, cursor)
+sdl.display(fullscreen, w, h, grabbed, cursor)
 ```
 
 The window in fullscreen (the desktop), or with the size `w` x `h` (if

@@ -1256,12 +1256,12 @@ pin sdl = [
         `sdl_volume(a_isnum($snd) ? a_dbl($snd) : 1.0, a_isnum($mus) ? a_dbl($mus) : 1.0);`
     },
 
-    ;; sdl.display(fullscreen, w, h, grab, cursor): the window in
+    ;; sdl.display(fullscreen, w, h, grabbed, cursor): the window in
     ;; fullscreen, or with the size w x h (if greater than 0), the mouse
     ;; grabbed in it, and the cursor shown; the window keeps its size
     ;; in the test mode
-    display = func (full, w, h, grab, cursor) {
-        `sdl_display(a_truthy($full), sdl_int($w,0), sdl_int($h,0), a_truthy($grab), a_truthy($cursor));`
+    display = func (full, w, h, grabbed, cursor) {
+        `sdl_display(a_truthy($full), sdl_int($w,0), sdl_int($h,0), a_truthy($grabbed), a_truthy($cursor));`
     },
 
     ;; sdl.key(name): whether a key is pressed, by the name of the key
