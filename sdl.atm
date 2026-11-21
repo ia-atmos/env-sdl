@@ -108,8 +108,8 @@ static int           SDL_MY  = 0;
 static Uint8         SDL_KEYS[SDL_NUM_SCANCODES];  // pressed, by scancode
 static double        SDL_CLOCK = 1.0;   // the factor of the clock
 static int           SDL_FRAME = 0;     // the current frame, from 1
-static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES, or -t)
-static int           SDL_TEST = 0;      // under -t (set by a `test` block below)
+static int           SDL_TESTING = 0;   // in the test mode (SDL_ATM_FRAMES, or --test)
+static int           SDL_TEST = 0;      // under --test (set by a `test` block below)
 static void        (*SDL_FLUSH) (int) = NULL;  // see sdl_on_flush
 static char*         SDL_PASSES[8] = { NULL };  // the tags of the passes
 
@@ -247,7 +247,7 @@ static void sdl_window (AVal t) {
     a_dec(k);
     SDL_LW = sdl_int(sdl_get(lg, a_int(0)), 0);
     SDL_LH = sdl_int(sdl_get(lg, a_int(1)), 0);
-    // under -t, no window is shown: the dummy driver, unless the test
+    // under --test, no window is shown: the dummy driver, unless the test
     // names another
     if (SDL_TEST && getenv("SDL_VIDEODRIVER")==NULL) {
         SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);
@@ -350,7 +350,7 @@ static SDL_Texture* sdl_img_tex (SDL_Image* img) {
 //                                      test mode with no screenshot
 //  int           SDL_FRAME, SDL_TESTING, SDL_TEST
 //                                      the frame, the test mode of the
-//                                      variables, and -t
+//                                      variables, and --test
 ///////////////////////////////////////////////////////////////////////////////
 
 static SDL_Window*   sdl_win (void) { return SDL_WIN; }
@@ -635,7 +635,7 @@ static void sdl_text (AVal fnt, AVal txt, int x, int y, AVal rgba, int align) {
 }
 
 // The audio device, opened at the first use, unless SDL_ATM_MUTE or
-// under -t: whether it is open.
+// under --test: whether it is open.
 static int sdl_audio (void) {
     if (!SDL_SND_TRIED) {
         SDL_SND_TRIED = 1;
@@ -1119,7 +1119,8 @@ int main (int argc, char** argv) {
 }
 ```
 
-;; Under -t (`test` blocks), the environment opens no window that shows
+;; Under --test (`test` blocks; `-t` before the long options of the
+;; compiler), the environment opens no window that shows
 ;; and no audio: the program is driven by its tests (see `sdl.test`).
 test {
     `SDL_TEST = 1;`
@@ -1298,7 +1299,7 @@ pin sdl = [
         `:number SDL_FRAME`
     },
 
-    ;; sdl.testing(): whether in the test mode (SDL_ATM_FRAMES, or -t)
+    ;; sdl.testing(): whether in the test mode (SDL_ATM_FRAMES, or --test)
     testing = func () {
         `:boolean (SDL_TESTING || SDL_TEST)`
     },

@@ -270,11 +270,12 @@ The tests of this repository compare the standard output of a program
 (its trace) and its screenshots, pixel by pixel (`tools/pngcmp.c`):
 see `tst/run.sh`.
 
-### Under `-t`
+### Under `--test`
 
-A program built with `-t` runs its `test` blocks, which drive it: they
+A program built with `--test` (`-t` until the compiler has its long
+options) runs its `test` blocks, which drive it: they
 emit the events, and the loop of the environment does not run while
-they do. Under `-t` the environment opens no window that shows (the
+they do. Under `--test` the environment opens no window that shows (the
 dummy driver of SDL, unless `SDL_VIDEODRIVER` names another) and no
 audio, so a test needs no variable of SDL. `sdl.testing()` is true.
 For what a test cannot `emit`, `sdl.test`:

@@ -1,7 +1,8 @@
-;; Under -t (`test` blocks), with no dummy drivers of SDL: the window
+;; Under --test (`test` blocks), with no dummy drivers of SDL: the window
 ;; does not show, there is no audio, and `sdl.test` gives what a test
 ;; cannot emit. The test drives the program; the loop does not run.
 ;; flags: -t
+;; (`-t` until the compiler has `--test`: atmos-cli#2, branch `cli`)
 
 test {
     sdl.window [title="minus-t", width=8, height=4]

@@ -16,8 +16,9 @@
 #   ;; env: SDL_ATM_FRAMES=10:16 SDL_ATM_KEYS="2:dn:Left Shift"
 #
 # and a line that starts with `;; args:` gives the arguments of the
-# program, and `;; flags:` the options of the compiler (as `-t`). They
-# are read by the shell. With `-t`, the test runs with no dummy drivers
+# program, and `;; flags:` the options of the compiler (as `--test`, or
+# `-t` of a compiler before its long options). They are read by the
+# shell. With either, the test runs with no dummy drivers
 # of SDL: the environment must open no window that shows and no audio.
 #
 # The program runs in its own directory.
@@ -72,7 +73,7 @@ for t in "$@"; do
     flags=$(sed -n 's/^;; flags: *//p' "$dir/$src" | tr '\n' ' ')
     drivers="SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy"
     case " $flags " in
-        *" -t "*) drivers="-u SDL_VIDEODRIVER -u SDL_AUDIODRIVER" ;;
+        *" -t "*|*" --test "*) drivers="-u SDL_VIDEODRIVER -u SDL_AUDIODRIVER" ;;
     esac
     (
         cd "$dir" &&

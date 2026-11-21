@@ -24,13 +24,14 @@ no decision needed), **waits** (waits for another session), **told**
 | 7 | Loop points of a music (Tux) | done (2026-11-20) |
 | 8 | Blend modes at the draw (Flare) | done (2026-11-20), in `sdl.draw_ex` |
 | 9 | `doc/inventory/pingus.md` out of date | done (2026-11-20): marked as a picture of E1 |
-| 10 | `:step [us]`, the scaled time once per frame (SNKRX) | settled by the session, to be confirmed: #10a, no `:step` here |
+| 10 | `:step [us]`, the scaled time once per frame (SNKRX) | closed (2026-11-21): #10a confirmed by the author, no `:step` here |
 | 11 | A test of the pause of Rocks | done (2026-11-20): `exs/rocks/test-pause.atm` |
-| 12 | The order of a frame of `sdl.atm` is the order of all environments | told |
-| 13 | No window and no audio under `-t` (test blocks), and `sdl.test` | done (2026-11-20), by the session, to be confirmed (`atmos-envs#3b`) |
+| 12 | The order of a frame of `sdl.atm` is the order of all environments | closed (2026-11-21): acknowledged |
+| 13 | No window and no audio under `--test` (test blocks), and `sdl.test` | done, confirmed by the author (2026-11-21) |
 | 14 | `sdl.atm` under the numeric options of the compiler | done (2026-11-20) |
 | 15 | The rename of the numeric options (`A_CLOCK_US`, `ATMOS_FLOAT/INTEGER/CLOCK`) | done (2026-11-20), works before and after the merge of `float` |
 | 16 | `sdl.window [clear=false]`, asked by SNKRX | done (2026-11-21) |
+| 17 | The test flag is `--test`: switch `tst/minus-t.atm` from `-t` when the compiler has it | waits: `atmos-cli` (its #2, branch `cli`) |
 
 ## A. Decisions waiting for the author
 
@@ -85,7 +86,8 @@ no decision needed), **waits** (waits for another session), **told**
   `ATMOS_REAL=float` (`atmos-lang` told). Which options an
   environment supports is open with the author (`atmos-float#14`).
 
-- **#13 (done, by the session, to be confirmed)**: under `-t`, a
+- **#13 (done, confirmed by the author on 2026-11-21, who named the
+  flag `--test`)**: under `--test` (`-t` today), a
   `test` block of `sdl.atm` sets `SDL_TEST`: the window uses the dummy
   driver (unless `SDL_VIDEODRIVER` names another), the audio is not
   opened, `sdl.testing()` is true; `sdl.test.key/mouse/clear/shot`.
@@ -95,7 +97,7 @@ no decision needed), **waits** (waits for another session), **told**
   `tst/minus-t.atm` with no dummy drivers, the suite of Pingus, and its
   `bomber-test.atm` with no dummy drivers.
 
-- **#10 (settled by the session, to be confirmed)**: #10a, the
+- **#10 (closed: #10a, confirmed by the author on 2026-11-21)**: the
   recommendation: the environment emits no `:step`; if the author says
   yes to SNKRX's finding 8, SNKRX emits its own step from `:frame`
   (`e.us` times its factor, with its own carry). Nothing built; told
@@ -112,13 +114,8 @@ no decision needed), **waits** (waits for another session), **told**
 
 ## C. Reported or decided, not acknowledged
 
-- **#12** The order of a frame of `sdl.atm` is the order of all
-  environments (the author, 2026-11-18, relayed by `atmos-envs`):
-  input, `:frame`, the time, `:draw`. Nothing to change here; pico
-  and ray align with it.
-
-(Everything before was acknowledged by the author on 2026-11-18; the
-history is in `git log` of this file.)
+(none: the author acknowledged #12 and confirmed #13 and #10a on
+2026-11-21; the history is in `git log` of this file.)
 
 ## D. Sessions to talk to
 
