@@ -15,7 +15,7 @@ no decision needed), **waits** (waits for another session), **told**
 
 | # | Item | State |
 |---|------|-------|
-| 1 | E5: SNKRX over the environment | waits: `snxkx` (its migration to the rules of `pin`) |
+| 1 | E5: SNKRX over the environment | in course, by `snxkx` (started 2026-11-21, baseline `ad37d31`, 40 tests) |
 | 2 | E6: Flare over the environment | work, after #1 |
 | 3 | E7: what was learned | work, after #2 |
 | 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked; no environment has moved to it yet |
