@@ -122,7 +122,7 @@ await :mouse.button.dn [button=3]
 
 ```
 sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=,
-            software=, passes=]
+            software=, passes=, clear=]
 ```
 
 Opens the window. With no window, there is no `:draw`.
@@ -142,6 +142,10 @@ Opens the window. With no window, there is no `:draw`.
   it has alpha), a line a pixel at a time, and the surface is copied to
   the window at each frame. A screenshot is the surface. Otherwise, the
   renderer of SDL draws, with a texture for each image.
+- `clear`: if false, the screen is not cleared (black) before the passes,
+  for a program that covers the whole screen itself (default true). What
+  is left of the last frame depends on the renderer (SDL does not keep
+  it after a present on every driver).
 - `passes`: the tags of the passes of drawing, emitted in order at each
   frame (default `[:draw]`, at most 7):
   `passes=[:draw, :overlay]`.

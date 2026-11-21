@@ -95,6 +95,7 @@ static int           SDL_LW  = 0;       // the logical size, or 0
 static int           SDL_LH  = 0;
 static int           SDL_FPS = 60;      // the cap of frames per second (0: none)
 static int           SDL_FIXED = 0;     // frames of exactly 1/SDL_FPS s
+static int           SDL_CLEAR = 1;     // clears the screen before the passes
 static int           SDL_SND = 0;       // the audio device is open
 static int           SDL_SND_TRIED = 0; // its opening was tried (sdl_audio)
 static double        SDL_SND_VOL = 1.0; // the volume of the sounds
@@ -275,6 +276,10 @@ static void sdl_window (AVal t) {
         }
         SDL_PASSES[i] = strdup(A_STR_OF(p)->s);
     }
+    k = a_strz("clear");
+    AVal cl = sdl_get(t, k);
+    a_dec(k);
+    SDL_CLEAR = (cl.type == A_NIL) || a_truthy(cl);
     k = a_strz("software");
     int soft = a_truthy(sdl_get(t, k));
     a_dec(k);
@@ -1041,10 +1046,12 @@ int main (int argc, char** argv) {
 
         // screen
         if (st==A_OK && SDL_REN!=NULL) {
-            SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255);
-            SDL_RenderClear(SDL_REN);
-            if (SDL_SCR != NULL) {
-                SDL_FillRect(SDL_SCR, NULL, SDL_MapRGBA(SDL_SCR->format, 0, 0, 0, 255));
+            if (SDL_CLEAR) {
+                SDL_SetRenderDrawColor(SDL_REN, 0, 0, 0, 255);
+                SDL_RenderClear(SDL_REN);
+                if (SDL_SCR != NULL) {
+                    SDL_FillRect(SDL_SCR, NULL, SDL_MapRGBA(SDL_SCR->format, 0, 0, 0, 255));
+                }
             }
             if (SDL_PASSES[0] == NULL) {
                 st = sdl_emit(SDL_EVT_DRAW);
@@ -1120,7 +1127,7 @@ test {
 
 pin sdl = [
     ;; sdl.window [title=, width=, height=, logical=[w,h], fps=, fixed=,
-    ;;             software=, passes=]
+    ;;             software=, passes=, clear=]
     ;;  - logical: the size that the program draws in, scaled to the
     ;;    window (default: the size of the window)
     ;;  - fps: the cap of frames per second (default 60; 0, no cap)
@@ -1131,6 +1138,8 @@ pin sdl = [
     ;;    an image is drawn with SDL_BlitSurface, a fill with
     ;;    SDL_FillRect, and the surface is copied to the window at each
     ;;    frame; a screenshot is the surface
+    ;;  - clear: if false, the screen is not cleared before the passes,
+    ;;    for a program that covers the whole screen itself
     ;;  - passes: the tags of the passes of drawing, emitted in order at
     ;;    each frame (default [:draw]; at most 7)
     window = func (t) {

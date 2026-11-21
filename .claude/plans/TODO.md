@@ -15,7 +15,7 @@ no decision needed), **waits** (waits for another session), **told**
 
 | # | Item | State |
 |---|------|-------|
-| 1 | E5: SNKRX over the environment | in course, by `snxkx` (started 2026-11-21, baseline `ad37d31`, 40 tests) |
+| 1 | E5: SNKRX over the environment | done (2026-11-21), told |
 | 2 | E6: Flare over the environment | work, after #1 |
 | 3 | E7: what was learned | work, after #2 |
 | 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked; no environment has moved to it yet |
@@ -30,6 +30,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 13 | No window and no audio under `-t` (test blocks), and `sdl.test` | done (2026-11-20), by the session, to be confirmed (`atmos-envs#3b`) |
 | 14 | `sdl.atm` under the numeric options of the compiler | done (2026-11-20) |
 | 15 | The rename of the numeric options (`A_CLOCK_US`, `ATMOS_FLOAT/INTEGER/CLOCK`) | done (2026-11-20), works before and after the merge of `float` |
+| 16 | `sdl.window [clear=false]`, asked by SNKRX | done (2026-11-21) |
 
 ## A. Decisions waiting for the author
 
@@ -99,6 +100,15 @@ no decision needed), **waits** (waits for another session), **told**
   yes to SNKRX's finding 8, SNKRX emits its own step from `:frame`
   (`e.us` times its factor, with its own carry). Nothing built; told
   to SNKRX. Undo: build `:step [us]` after the clock (#10b).
+
+- **#1 (E5 done)**: SNKRX moved over `94cb414` (`sdl-snkrx`
+  `8d2f653`): 39 of its 40 tests identical, traces and screenshots; the
+  40th prints the new names of the events, by design. Its `eng.h` went
+  from 1213 to 1040 lines; it keeps its drawing, its sounds and its
+  physics, over the door. Its cost: 18.07 s against 16.62 s on its
+  stress scenario, 0.82 s of it the clear before the passes, which
+  `sdl.window [clear=false]` (#16) now skips. Not checked here (its
+  suite needs Box2D).
 
 ## C. Reported or decided, not acknowledged
 

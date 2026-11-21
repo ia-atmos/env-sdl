@@ -1,0 +1,14 @@
+;; With clear=false the screen is not cleared before the passes: what a
+;; frame drew stays under the next (frame 1 fills the left, frame 2 the
+;; right).
+;; env: SDL_ATM_FRAMES=2:16 SDL_ATM_SHOT=2:out/noclear-2.png
+
+sdl.window [title="noclear", width=8, height=2, clear=false]
+
+loop e on :draw {
+    if sdl.frame() == 1 {
+        sdl.fill(0xFF0000FF, 0, 0, 4, 2)
+    } else {
+        sdl.fill(0x00FF00FF, 4, 0, 4, 2)
+    }
+}
