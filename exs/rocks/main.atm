@@ -117,13 +117,13 @@ loop {
     pin battle = spawn Battle()
 
     ;; Pause with 'P':
-    ;;  * awaits 'P' to toggle battle off
+    ;;  * awaits 'P' to mute the battle
     ;;  * shows a "paused" image
-    ;;  * awaits 'P' to toggle battle on
+    ;;  * awaits 'P' to unmute the battle
     spawn {
         loop {
             await :key.dn [key='P']
-            toggle battle(false)
+            mute battle(true)
             spawn {
                 pin tex = sdl.image("imgs/pause.png") --> assert
                 val w, h = sdl.size(tex)
@@ -133,7 +133,7 @@ loop {
                 }
             }
             await :key.dn [key='P']
-            toggle battle(true)
+            mute battle(false)
         }
     }
 
