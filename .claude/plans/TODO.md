@@ -119,8 +119,12 @@ no decision needed), **waits** (waits for another session), **told**
 
 ## D. Sessions to talk to
 
+- Coordination, status, and questions for the author: `atmos`,
+  session_011eECohhJbc4GMpAj3yyeEo (since 2026-11-24,
+  `atmos-lang#119`).
 - The compiler: `atmos-lang` (formerly `ceu-atmos`),
-  session_011eECogKVQ7ZzmWCoMST2wK. Everything but `pin`.
+  session_011eECogKVQ7ZzmWCoMST2wK: measurements on the ports, merges
+  into `main` of `lang`, and everything but `pin`.
 - The rules of `pin`: `atmos-pin`, session_011eECogSDhkVfyt7qme5DLh
   (the author's decision, 2026-11-18), with a small program.
 - The games: `pingus` session_011eECoent86e4ta3otsCoEa, `snxkx`
