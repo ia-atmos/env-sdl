@@ -285,13 +285,16 @@ static void sdl_window (AVal t) {
     a_dec(k);
     if (soft) {
         // the screen is a surface of the logical size, copied to a
-        // texture at each frame, and stretched to the window
+        // texture at each frame, and scaled to the window by SDL (below)
         int sw = (SDL_LW>0 && SDL_LH>0) ? SDL_LW : w;
         int sh = (SDL_LW>0 && SDL_LH>0) ? SDL_LH : h;
         SDL_SCR = SDL_CreateRGBSurfaceWithFormat(0, sw, sh, 32, SDL_PIXELFORMAT_ARGB8888);
         SDL_SCR_TEX = SDL_CreateTexture(SDL_REN, SDL_PIXELFORMAT_ARGB8888,
             SDL_TEXTUREACCESS_STREAMING, sw, sh);
-    } else if (SDL_LW>0 && SDL_LH>0) {
+    }
+    // the logical size on the renderer, in both paths: SDL scales the
+    // picture (one scale, letterboxed) and the events of the mouse
+    if (SDL_LW>0 && SDL_LH>0) {
         SDL_RenderSetLogicalSize(SDL_REN, SDL_LW, SDL_LH);
     }
 }
@@ -847,21 +850,6 @@ static AStatus sdl_emit_key_name (const char* tag, const char* name) {
     return sdl_emit_key(tag, key, SDL_GetScancodeFromKey(key));
 }
 
-// A position of a real mouse, from the window to the size the program
-// draws in: in the software path the screen is stretched to the window
-// (with the renderer, SDL_RenderSetLogicalSize does it).
-static void sdl_mouse_scale (int* x, int* y) {
-    int ww, wh;
-    if (SDL_SCR==NULL || SDL_WIN==NULL) {
-        return;
-    }
-    SDL_GetWindowSize(SDL_WIN, &ww, &wh);
-    if (ww>0 && wh>0 && (ww!=SDL_SCR->w || wh!=SDL_SCR->h)) {
-        *x = (int)((int64_t)*x * SDL_SCR->w / ww);
-        *y = (int)((int64_t)*y * SDL_SCR->h / wh);
-    }
-}
-
 // A motion (`but` is 0) or a button of the mouse, at a position.
 static AStatus sdl_emit_mouse (const char* tag, int x, int y, int but) {
     SDL_MX = x;
@@ -1023,13 +1011,10 @@ int main (int argc, char** argv) {
             } else if (e.type == SDL_KEYUP) {
                 st = sdl_emit_key(SDL_EVT_KEY_UP, e.key.keysym.sym, e.key.keysym.scancode);
             } else if (e.type == SDL_MOUSEMOTION) {
-                sdl_mouse_scale(&e.motion.x, &e.motion.y);
                 st = sdl_emit_mouse(SDL_EVT_MOTION, e.motion.x, e.motion.y, 0);
             } else if (e.type == SDL_MOUSEBUTTONDOWN) {
-                sdl_mouse_scale(&e.button.x, &e.button.y);
                 st = sdl_emit_mouse(SDL_EVT_BUT_DN, e.button.x, e.button.y, e.button.button);
             } else if (e.type == SDL_MOUSEBUTTONUP) {
-                sdl_mouse_scale(&e.button.x, &e.button.y);
                 st = sdl_emit_mouse(SDL_EVT_BUT_UP, e.button.x, e.button.y, e.button.button);
             }
         }

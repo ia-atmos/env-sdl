@@ -1,19 +1,9 @@
 ;; The software path with a logical size: the door gives the pixels of
-;; an image as the environment blits them (ARGB8888, unless raw), and a
-;; real mouse is scaled from the window (16x8) to the logical size (8x4).
+;; an image as the environment blits them (ARGB8888, unless raw), and the
+;; logical size is set on the renderer, so that SDL scales the picture and
+;; a real mouse as with the renderer path (one scale, letterboxed). A
+;; pushed event is not scaled by SDL, so the trace shows the renderer.
 ;; env: SDL_ATM_FRAMES=3:16
-
-```:prelude
-static void softdoor_push (int x, int y) {
-    SDL_Event e;
-    SDL_zero(e);
-    e.type = SDL_MOUSEMOTION;
-    e.motion.windowID = SDL_GetWindowID(sdl_win());
-    e.motion.x = x;
-    e.motion.y = y;
-    SDL_PushEvent(&e);
-}
-```
 
 sdl.window [title="softdoor", width=16, height=8, logical=[8,4], software=true]
 
@@ -22,11 +12,4 @@ pin raw = sdl.image("res/quad.png", true)
 print(:argb, `:boolean sdl_sfc($img)->format->format == SDL_PIXELFORMAT_ARGB8888`)
 print(:raw, `:boolean sdl_sfc($raw)->format->format == SDL_PIXELFORMAT_ARGB8888`)
 
-spawn {
-    loop e on :mouse.motion {
-        print(:motion, e.x, e.y)
-    }
-}
-await :frame
-`softdoor_push(10, 6);`
-await false
+print(:logical, `:number ({ int w, h; SDL_RenderGetLogicalSize(sdl_ren(), &w, &h); w; })`, `:number ({ int w, h; SDL_RenderGetLogicalSize(sdl_ren(), &w, &h); h; })`)

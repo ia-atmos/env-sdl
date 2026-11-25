@@ -33,7 +33,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 16 | `sdl.window [clear=false]`, asked by SNKRX | done (2026-11-21) |
 | 17 | The test flag is `--test`: switch `tst/minus-t.atm` from `-t` when the compiler has it | waits: `atmos-cli` (its #2, branch `cli`) |
 | 18 | The kinds of native values are `char[]`, not string literals (broke under LTO) | done (2026-11-25), a defect fix under #95 |
-| 19 | From Flare: `sdl_sfc` converts in the software path; the real mouse scaled to the logical size there | done (2026-11-25) |
+| 19 | From Flare: `sdl_sfc` converts in the software path; the mouse scaled by SDL (`SDL_RenderSetLogicalSize`) there too | done (2026-11-25) |
 | 20 | From Flare: fonts with a TTF style, Solid or Blended (it keeps them in C) | work, if asked |
 
 ## A. Decisions waiting for the author

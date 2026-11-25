@@ -108,8 +108,9 @@ The events:
   keyboard. They differ on other layouts.
 - `button`: 1 left, 2 middle, 3 right.
 - The position is in the size the program draws in: with a logical size
-  it is scaled from the window, in both paths. A scripted position is
-  already in that size.
+  SDL scales it from the window (`SDL_RenderSetLogicalSize`: one scale,
+  letterboxed), in both paths. A scripted position is already in that
+  size.
 - `n` counts the frames from 1; `us` is the time of the frame, in
   microseconds, not scaled by `sdl.clock`.
 - A key held down is not repeated.
