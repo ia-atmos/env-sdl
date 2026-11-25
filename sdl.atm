@@ -338,7 +338,10 @@ static SDL_Texture* sdl_img_tex (SDL_Image* img) {
 //  SDL_Surface*  sdl_scr  (void)       the screen, in the software path
 //  void          sdl_size (int* w, int* h)
 //                                      the size the program draws in
-//  SDL_Surface*  sdl_sfc  (AVal img)   the pixels of an image, or NULL
+//  SDL_Surface*  sdl_sfc  (AVal img)   the pixels of an image, or NULL;
+//                                      in the software path, as the
+//                                      environment blits them (ARGB8888,
+//                                      unless raw)
 //  SDL_Texture*  sdl_tex  (AVal img)   the texture of an image, or NULL
 //  AVal          sdl_new_image (SDL_Surface* sfc)
 //                                      an image that owns `sfc`
@@ -370,9 +373,17 @@ static void sdl_size (int* w, int* h) {
     }
 }
 
+static void sdl_blit (AVal v, SDL_Rect* src, SDL_Rect* dst, int alpha);
+
 static SDL_Surface* sdl_sfc (AVal v) {
     SDL_Image* img = sdl_img(v);
-    return (img == NULL) ? NULL : img->sfc;
+    if (img == NULL) {
+        return NULL;
+    }
+    if (SDL_SCR != NULL) {
+        sdl_blit(v, NULL, NULL, 255);   // converts it, if it is not raw
+    }
+    return img->sfc;
 }
 
 static SDL_Texture* sdl_tex (AVal v) {
@@ -836,6 +847,21 @@ static AStatus sdl_emit_key_name (const char* tag, const char* name) {
     return sdl_emit_key(tag, key, SDL_GetScancodeFromKey(key));
 }
 
+// A position of a real mouse, from the window to the size the program
+// draws in: in the software path the screen is stretched to the window
+// (with the renderer, SDL_RenderSetLogicalSize does it).
+static void sdl_mouse_scale (int* x, int* y) {
+    int ww, wh;
+    if (SDL_SCR==NULL || SDL_WIN==NULL) {
+        return;
+    }
+    SDL_GetWindowSize(SDL_WIN, &ww, &wh);
+    if (ww>0 && wh>0 && (ww!=SDL_SCR->w || wh!=SDL_SCR->h)) {
+        *x = (int)((int64_t)*x * SDL_SCR->w / ww);
+        *y = (int)((int64_t)*y * SDL_SCR->h / wh);
+    }
+}
+
 // A motion (`but` is 0) or a button of the mouse, at a position.
 static AStatus sdl_emit_mouse (const char* tag, int x, int y, int but) {
     SDL_MX = x;
@@ -997,10 +1023,13 @@ int main (int argc, char** argv) {
             } else if (e.type == SDL_KEYUP) {
                 st = sdl_emit_key(SDL_EVT_KEY_UP, e.key.keysym.sym, e.key.keysym.scancode);
             } else if (e.type == SDL_MOUSEMOTION) {
+                sdl_mouse_scale(&e.motion.x, &e.motion.y);
                 st = sdl_emit_mouse(SDL_EVT_MOTION, e.motion.x, e.motion.y, 0);
             } else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                sdl_mouse_scale(&e.button.x, &e.button.y);
                 st = sdl_emit_mouse(SDL_EVT_BUT_DN, e.button.x, e.button.y, e.button.button);
             } else if (e.type == SDL_MOUSEBUTTONUP) {
+                sdl_mouse_scale(&e.button.x, &e.button.y);
                 st = sdl_emit_mouse(SDL_EVT_BUT_UP, e.button.x, e.button.y, e.button.button);
             }
         }

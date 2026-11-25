@@ -107,6 +107,9 @@ The events:
   `code` the name of its scancode: the key at that place of a US
   keyboard. They differ on other layouts.
 - `button`: 1 left, 2 middle, 3 right.
+- The position is in the size the program draws in: with a logical size
+  it is scaled from the window, in both paths. A scripted position is
+  already in that size.
 - `n` counts the frames from 1; `us` is the time of the frame, in
   microseconds, not scaled by `sdl.clock`.
 - A key held down is not repeated.
@@ -310,7 +313,7 @@ valid while the image is.
 | `SDL_Renderer* sdl_ren(void)` | the renderer, or `NULL` |
 | `SDL_Surface* sdl_scr(void)` | the screen surface in the software path, or `NULL` |
 | `void sdl_size(int* w, int* h)` | the size the program draws in |
-| `SDL_Surface* sdl_sfc(AVal img)` | the pixels of an image, or `NULL` |
+| `SDL_Surface* sdl_sfc(AVal img)` | the pixels of an image, or `NULL`; in the software path, as the environment blits them (converted to ARGB8888 unless raw) |
 | `SDL_Texture* sdl_tex(AVal img)` | the texture of an image (made at its first use), or `NULL` |
 | `AVal sdl_new_image(SDL_Surface* sfc)` | an image that owns `sfc` (raw) |
 | `void sdl_on_flush(void (*f)(int render))` | `f` runs at each frame, after the passes of drawing and before the screenshot and the present; `render` is 0 in a frame of the test mode that has no screenshot (unless `SDL_ATM_RENDER`) |
