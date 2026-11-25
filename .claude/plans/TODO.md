@@ -16,7 +16,7 @@ no decision needed), **waits** (waits for another session), **told**
 | # | Item | State |
 |---|------|-------|
 | 1 | E5: SNKRX over the environment | done (2026-11-21), told |
-| 2 | E6: Flare over the environment | waits: `flare`, asked to start on 2026-11-25 |
+| 2 | E6: Flare over the environment | waits: `flare` will start (`sdl-flare#11`) after the HUD grain on its main; 38 traces and screenshots to keep |
 | 3 | E7: what was learned | work, after #2 |
 | 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked; no environment has moved to it yet |
 | 5 | Screenshots with text depend on the version of FreeType | work |
