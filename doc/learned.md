@@ -12,7 +12,7 @@ and what the environment costs. The design is in
 
 | | Pingus | SNKRX | Flare |
 |---|---|---|---|
-| Done | 2026-11-17 | 2026-11-21 | 2026-11-25 (on a branch; its merge waits for the author) |
+| Done | 2026-11-17 | 2026-11-21 | 2026-11-25 (on its main `8748120`) |
 | Baseline | `cc5fe72` | `ad37d31` | `6e79237` |
 | Over | `sdl-pingus` `e9fd322` | `sdl-snkrx` `8d2f653` | `sdl-flare` `f724aae` |
 | Tests | 37 checks, 6 golden screenshots, 159 demo traces: identical | 39 of 40 identical; the 40th prints the new names of the events | 38 traces against the original, data dumps, screenshots against the original and of the units: identical |
