@@ -113,9 +113,9 @@ static int           SDL_TEST = 0;      // under --test (set by a `test` block b
 static void        (*SDL_FLUSH) (int) = NULL;  // see sdl_on_flush
 static char*         SDL_PASSES[8] = { NULL };  // the tags of the passes
 
-static const char* SDL_KIND_IMG = "sdl.image";
-static const char* SDL_KIND_FNT = "sdl.font";
-static const char* SDL_KIND_SND = "sdl.sound";
+static const char SDL_KIND_IMG[] = "sdl.image";
+static const char SDL_KIND_FNT[] = "sdl.font";
+static const char SDL_KIND_SND[] = "sdl.sound";
 
 // An image: its pixels in a surface, and a texture made from it at its
 // first draw. The surface has the format of the file; in the software

@@ -32,6 +32,7 @@ no decision needed), **waits** (waits for another session), **told**
 | 15 | The rename of the numeric options (`A_CLOCK_US`, `ATMOS_FLOAT/INTEGER/CLOCK`) | done (2026-11-20), works before and after the merge of `float` |
 | 16 | `sdl.window [clear=false]`, asked by SNKRX | done (2026-11-21) |
 | 17 | The test flag is `--test`: switch `tst/minus-t.atm` from `-t` when the compiler has it | waits: `atmos-cli` (its #2, branch `cli`) |
+| 18 | The kinds of native values are `char[]`, not string literals (broke under LTO) | done (2026-11-25), a defect fix under #95 |
 
 ## A. Decisions waiting for the author
 
