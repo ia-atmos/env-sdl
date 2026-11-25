@@ -9,7 +9,8 @@ images, the text, the sound, and the time, with a test mode with no screen.
 - `atmos-sdl`: the Atmos compiler dedicated to SDL, built by `make`.
 - [`tst/`](tst/): the tests (`make tests`).
 - [`exs/rocks/`](exs/rocks/): a spaceship shooter for 2 players.
-- [`doc/`](doc/): the documents of the design.
+- [`doc/`](doc/): the documents of the design, and
+  [`doc/learned.md`](doc/learned.md): what the moves of the three games taught.
 
 [sdl]:   https://www.libsdl.org/
 [atmos]: https://github.com/ia-atmos/lang
@@ -59,5 +60,6 @@ screenshots, pixel by pixel. The test mode is in
 # Status
 
 The environment of the three games ported over SDL2 (Pingus, SNKRX,
-Flare), and of SuperTux. It started as `lib/sdl.atm` of the compiler.
+Flare), which moved over it with their tests identical, and of
+SuperTux. It started as `lib/sdl.atm` of the compiler.
 The plan and what is pending are in [`.claude/plans/`](.claude/plans/).

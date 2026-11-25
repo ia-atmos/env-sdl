@@ -17,7 +17,7 @@ no decision needed), **waits** (waits for another session), **told**
 |---|------|-------|
 | 1 | E5: SNKRX over the environment | done (2026-11-21), told |
 | 2 | E6: Flare over the environment | done on its branch `env-sdl` (`f724aae`, 2026-11-25), all identical; its merge waits for the author (its rule) |
-| 3 | E7: what was learned | work, after #2 |
+| 3 | E7: what was learned | done (2026-11-25): `doc/learned.md`, told |
 | 4 | `sdl.atm` over `atmos.env [step, quit, mode]` | work, not asked; no environment has moved to it yet |
 | 5 | Screenshots with text depend on the version of FreeType | work |
 | 6 | `sdl.draw_ex`: flips, rotation, tint (Tux) | done (2026-11-20) |
