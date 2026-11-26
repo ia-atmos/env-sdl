@@ -19,7 +19,8 @@
 ;;      :key.up [key=,code=]        a key was released
 ;;      :mouse.motion [x=,y=]       the mouse moved
 ;;      :mouse.button.dn [x=,y=,button=]    a button was pressed
-;;      :mouse.button.up [x=,y=,button=]    (1 left, 2 middle, 3 right)
+;;      :mouse.button.up [x=,y=,button=]    (:left, :middle, :right, or
+;;                                          the number of another)
 ;;      :frame [n=,us=]             once per frame, for the logic: the
 ;;                                  number of the frame, from 1, and
 ;;                                  the time since the last one, in
@@ -40,7 +41,8 @@
 ;;                              1/fps s, see `sdl.window`), then quits
 ;;      SDL_ATM_KEYS=f:dn:A,... presses (`dn`) or releases (`up`) keys at frames
 ;;                              (by the name of the key)
-;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
+;;      SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b  (b: left, middle,
+;;                              right, or a number; default left)
 ;;                              moves the mouse, presses or releases the
 ;;                              button `b` at a position (moving there
 ;;                              first, if it is elsewhere), at frames
@@ -850,13 +852,34 @@ static AStatus sdl_emit_key_name (const char* tag, const char* name) {
     return sdl_emit_key(tag, key, SDL_GetScancodeFromKey(key));
 }
 
-// A motion (`but` is 0) or a button of the mouse, at a position.
+// The name of a button of the mouse ("left", "middle", "right"), or
+// NULL for another one, which stays its number.
+static const char* sdl_but_name (int but) {
+    switch (but) {
+        case SDL_BUTTON_LEFT:   return "left";
+        case SDL_BUTTON_MIDDLE: return "middle";
+        case SDL_BUTTON_RIGHT:  return "right";
+        default:                return NULL;
+    }
+}
+
+// The number of a button of a script: its name or its number.
+static int sdl_but_num (const char* s) {
+    if (!strcmp(s,"left"))   { return SDL_BUTTON_LEFT;   }
+    if (!strcmp(s,"middle")) { return SDL_BUTTON_MIDDLE; }
+    if (!strcmp(s,"right"))  { return SDL_BUTTON_RIGHT;  }
+    return atoi(s);
+}
+
+// A motion (`but` is 0) or a button of the mouse, at a position. The
+// button is a tag (:left, :middle, :right), or a number for another.
 static AStatus sdl_emit_mouse (const char* tag, int x, int y, int but) {
     SDL_MX = x;
     SDL_MY = y;
+    const char* name = sdl_but_name(but);
     SDL_Fields f = {
-        { NULL, NULL }, { NULL, NULL },
-        { SDL_FLD_X, SDL_FLD_Y, (but == 0) ? NULL : SDL_FLD_BUTTON },
+        { (but!=0 && name!=NULL) ? SDL_FLD_BUTTON : NULL, NULL }, { name, NULL },
+        { SDL_FLD_X, SDL_FLD_Y, (but!=0 && name==NULL) ? SDL_FLD_BUTTON : NULL },
         { x, y, but }
     };
     return sdl_emit_f(tag, &f);
@@ -957,11 +980,15 @@ static AStatus sdl_script (const char* var, int frame) {
         if (!strcmp(var, "SDL_ATM_SHOT")) {
             sdl_shot(arg);
         } else if (!strcmp(var, "SDL_ATM_MOUSE")) {
-            int x=0, y=0, but=1;
+            int x=0, y=0, but=SDL_BUTTON_LEFT;
+            char b[16] = "";
             if (sscanf(arg, "mv:%d:%d", &x, &y) == 2) {
                 st = sdl_emit_mouse(SDL_EVT_MOTION, x, y, 0);
-            } else if (sscanf(arg, "dn:%d:%d:%d", &x, &y, &but) >= 2
-                    || sscanf(arg, "up:%d:%d:%d", &x, &y, &but) >= 2) {
+            } else if (sscanf(arg, "dn:%d:%d:%15s", &x, &y, b) >= 2
+                    || sscanf(arg, "up:%d:%d:%15s", &x, &y, b) >= 2) {
+                if (b[0] != '\0') {
+                    but = sdl_but_num(b);
+                }
                 // as a real mouse, it moves to where the button changes
                 if (x!=SDL_MX || y!=SDL_MY) {
                     st = sdl_emit_mouse(SDL_EVT_MOTION, x, y, 0);

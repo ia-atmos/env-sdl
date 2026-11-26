@@ -1,12 +1,13 @@
 at	0	0
 motion	10	20	nil
 motion	11	21	nil
-dn	11	21	1
-up	11	21	1
+dn	11	21	left
+up	11	21	left
 at	11	21
 motion	5	6	nil
-dn	5	6	3
+dn	5	6	right
 right
 motion	7	8	nil
-up	7	8	1
+up	7	8	left
 at	7	8
+dn	7	8	4

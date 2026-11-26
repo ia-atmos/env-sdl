@@ -106,7 +106,8 @@ The events:
 - `key` is the name of the key (`'A'`, `'Return'`, `'Left Shift'`), and
   `code` the name of its scancode: the key at that place of a US
   keyboard. They differ on other layouts.
-- `button`: 1 left, 2 middle, 3 right.
+- `button`: `:left`, `:middle`, `:right`, or the number of another
+  button.
 - The position is in the size the program draws in: with a logical size
   SDL scales it from the window (`SDL_RenderSetLogicalSize`: one scale,
   letterboxed), in both paths. A scripted position is already in that
@@ -119,7 +120,7 @@ The events:
 loop e on :key.dn {
     print(e.key, e.code)
 }
-await :mouse.button.dn [button=3]
+await :mouse.button.dn [button=:right]
 ```
 
 ## The window
@@ -251,7 +252,8 @@ SDL_ATM_KEYS=f:dn:A,...     presses (dn) or releases (up) a key at a
                             frame, by the name of the key
 SDL_ATM_MOUSE=f:mv:x:y,f:dn:x:y:b,f:up:x:y:b
                             moves the mouse, presses or releases the
-                            button b at a position, at a frame; a
+                            button b (left, middle, right, or a
+                            number; default left) at a position, at a frame; a
                             press or a release elsewhere moves the
                             mouse there first (:mouse.motion)
 SDL_ATM_SHOT=f:x.png,...    saves the screen at a frame, in PNG
