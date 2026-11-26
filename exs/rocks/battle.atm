@@ -52,7 +52,7 @@ task Battle () {
 
     ;; `s` becomes the tag of a collided ship within ships
 
-    val s = watching :any ships {     ;; GAMEPLAY
+    val _, s = watching :any ships {     ;; GAMEPLAY
         ;;;
         ;; Runs the gameplay until one of the two ships is destroyed:
         ;;  - Spawns new meteors periodically.
