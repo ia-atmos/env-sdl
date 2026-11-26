@@ -35,6 +35,8 @@ no decision needed), **waits** (waits for another session), **told**
 | 18 | The kinds of native values are `char[]`, not string literals (broke under LTO) | done (2026-11-25), a defect fix under #95 |
 | 19 | From Flare: `sdl_sfc` converts in the software path; the mouse scaled by SDL (`SDL_RenderSetLogicalSize`) there too | done (2026-11-25) |
 | 20 | From Flare: fonts with a TTF style, Solid or Blended (it keeps them in C) | work, if asked |
+| 21 | Excerpt, idiomatic: the pause of Rocks (`exs/rocks/main.atm:124-136`) | shown 2026-11-26 |
+| 22 | Excerpt, bad: `sdl.draw_ex` (`sdl.atm:1200-1213`) | shown 2026-11-26 |
 
 ## A. Decisions waiting for the author
 
@@ -128,6 +130,8 @@ no decision needed), **waits** (waits for another session), **told**
 - For each group of changes, show him one pair of Atmos excerpts from
   that work: one idiomatic, one bad (awkward, verbose, a workaround),
   short, with file and line (2026-11-26, said in `atmos`).
+  Each excerpt has a number `#N` in the index, and a bad one says why
+  and what would make it better (2026-11-26, his additions).
 
 ## D. Sessions to talk to
 
