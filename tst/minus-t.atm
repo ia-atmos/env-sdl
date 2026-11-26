@@ -24,7 +24,7 @@ test {
         }
     }
     sdl.test.clear()
-    emit(:draw)
+    emit :draw
     sdl.test.shot("out/minus-t-1.png")
     print(:ok)
 }

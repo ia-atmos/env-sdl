@@ -6,10 +6,8 @@
 sdl.window [title="fixed", width=20, height=20, fps=30]
 
 spawn {
-    loop e on :frame {
-        if e.n <= 4 {
-            print(:frame, e.n, e.us)
-        }
+    loop e on :frame until it.n <= 4 {
+        print(:frame, e.n, e.us)
     }
 }
 var n = 0
