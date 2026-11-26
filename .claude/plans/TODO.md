@@ -120,6 +120,12 @@ no decision needed), **waits** (waits for another session), **told**
 (none: the author acknowledged #12 and confirmed #13 and #10a on
 2026-11-21; the history is in `git log` of this file.)
 
+## Standing recommendations of the author
+
+- At each big step (a milestone, a feature that changes what is on
+  screen), show him a few screenshots in the report (2026-11-26, said
+  in `pico-1oom`, relayed by `atmos`).
+
 ## D. Sessions to talk to
 
 - Coordination, status, and questions for the author: `atmos`,
