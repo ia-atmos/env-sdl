@@ -37,7 +37,9 @@ no decision needed), **waits** (waits for another session), **told**
 | 20 | From Flare: fonts with a TTF style, Solid or Blended (it keeps them in C) | work, if asked |
 | 21 | Excerpt, idiomatic: the pause of Rocks (`exs/rocks/main.atm:124-136`) | shown 2026-11-26 |
 | 22 | Excerpt, bad: `sdl.draw_ex` (`sdl.atm:1200-1213`) | shown 2026-11-26 |
-| 23 | The mouse buttons as tags (`:left`, `:middle`, `:right`) | done (2026-11-26): the author chose #23a; the games told |
+| 23 | The mouse buttons as tags (`:left`, `:middle`, `:right`) | done (2026-11-26): the author chose #23a; the games told; acknowledged |
+| 24 | Excerpt, idiomatic: `await :mouse.button.dn [button=:right]` (`tst/mouse.atm`) | shown 2026-11-26, acknowledged |
+| 25 | Excerpt, bad: `us * (1000000 // 1s)` to print a clock in microseconds (`tst/time.atm:15`); a clock in a given unit is missing | shown 2026-11-26, acknowledged |
 
 ## A. Decisions waiting for the author
 
