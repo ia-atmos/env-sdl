@@ -125,6 +125,9 @@ no decision needed), **waits** (waits for another session), **told**
 - At each big step (a milestone, a feature that changes what is on
   screen), show him a few screenshots in the report (2026-11-26, said
   in `pico-1oom`, relayed by `atmos`).
+- For each group of changes, show him one pair of Atmos excerpts from
+  that work: one idiomatic, one bad (awkward, verbose, a workaround),
+  short, with file and line (2026-11-26, said in `atmos`).
 
 ## D. Sessions to talk to
 
