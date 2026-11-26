@@ -37,10 +37,21 @@ no decision needed), **waits** (waits for another session), **told**
 | 20 | From Flare: fonts with a TTF style, Solid or Blended (it keeps them in C) | work, if asked |
 | 21 | Excerpt, idiomatic: the pause of Rocks (`exs/rocks/main.atm:124-136`) | shown 2026-11-26 |
 | 22 | Excerpt, bad: `sdl.draw_ex` (`sdl.atm:1200-1213`) | shown 2026-11-26 |
+| 23 | The mouse buttons as tags (`:left`, `:middle`, `:right`) instead of 1, 2, 3, as IDIOMS.md asks of environments | open: asked 2026-11-26, recommended yes (#23a) |
 
 ## A. Decisions waiting for the author
 
-(none)
+- **#23** `IDIOMS.md` (rule of `env-iup#19`/`#21`): an event carries
+  no encoding of the library; the buttons are `left`, `middle`,
+  `right`. `sdl.atm` gives `button` as 1, 2, 3 (SDL's numbers), and
+  `SDL_ATM_MOUSE=f:dn:x:y:b` takes the number.
+  - **#23a (recommended)**: `button` becomes `:left`, `:middle`,
+    `:right` (other buttons stay numbers); the scripts take either
+    (`f:dn:x:y:left` or `:1`). Pingus (`engine/engine.atm:400`),
+    SNKRX (`eng/eng.atm`) and Flare (`src/hud.atm`,
+    `engine/engine.atm`) compare the number and change a few lines
+    each, with their tests identical; I tell them.
+  - **#23b**: keep the numbers, as SDL has them.
 
 ## B. Work known and not done
 
