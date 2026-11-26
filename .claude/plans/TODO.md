@@ -132,6 +132,11 @@ no decision needed), **waits** (waits for another session), **told**
   short, with file and line (2026-11-26, said in `atmos`).
   Each excerpt has a number `#N` in the index, and a bad one says why
   and what would make it better (2026-11-26, his additions).
+- Read `ia-atmos/lang` `.claude/plans/IDIOMS.md` before writing Atmos
+  (2026-11-26, `atmos#29`): the rules that came out of his reviews,
+  each with a before and an after. A general rule that comes out of
+  his review of an excerpt here goes to `atmos`, with its source
+  `env-sdl#N`.
 
 ## D. Sessions to talk to
 
